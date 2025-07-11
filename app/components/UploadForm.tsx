@@ -49,7 +49,7 @@ const UploadForm: React.FC<UploadFormProps> = ({ onResult }) => {
       const data = await res.json();
       onResult(data);
       setLoading(false);
-    } catch (err) {
+    } catch {
       setError('An error occurred.');
       setLoading(false);
     }
