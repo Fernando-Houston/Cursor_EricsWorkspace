@@ -1,3 +1,4 @@
+"use client";
 import React, { useState } from 'react';
 import UploadForm from './components/UploadForm';
 import PropertyTable from './components/PropertyTable';
