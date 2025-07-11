@@ -5,13 +5,21 @@ export const maxDuration = 30;
 
 export async function POST(req: NextRequest) {
   try {
+    console.log('API route called');
+    
     // Parse the incoming form data
     const formData = await req.formData();
     const file = formData.get('file') as File;
     
+    console.log('File received:', file ? file.name : 'No file');
+    
     if (!file) {
+      console.log('No file uploaded');
       return NextResponse.json({ error: 'No file uploaded' }, { status: 400 });
     }
+
+    console.log('File size:', file.size, 'bytes');
+    console.log('File type:', file.type);
 
     // For now, return a mock response to test file upload
     // In production, you would integrate with external OCR and scraping services
@@ -24,6 +32,7 @@ export async function POST(req: NextRequest) {
       parcelId: "0311370000012"
     };
 
+    console.log('Returning mock result');
     return NextResponse.json(mockResult);
     
   } catch (error) {

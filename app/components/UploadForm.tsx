@@ -35,21 +35,30 @@ const UploadForm: React.FC<UploadFormProps> = ({ onResult }) => {
     setError(null);
     const formData = new FormData();
     formData.append('file', file);
+    
+    console.log('Submitting file:', file.name, file.size, 'bytes');
+    
     try {
       const res = await fetch('/api/property-info', {
         method: 'POST',
         body: formData,
       });
+      
+      console.log('Response status:', res.status);
+      
       if (!res.ok) {
         const err = await res.json();
+        console.error('API error:', err);
         setError(err.error || 'Failed to process image.');
         setLoading(false);
         return;
       }
       const data = await res.json();
+      console.log('API response:', data);
       onResult(data);
       setLoading(false);
-    } catch {
+    } catch (error) {
+      console.error('Fetch error:', error);
       setError('An error occurred.');
       setLoading(false);
     }
