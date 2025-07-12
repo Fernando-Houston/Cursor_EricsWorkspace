@@ -70,6 +70,7 @@ interface PropertyTableProps {
 
 const PropertyTable: React.FC<PropertyTableProps> = ({ info }) => {
   const [activeTab, setActiveTab] = useState<'overview' | 'details' | 'history' | 'export'>('overview');
+  const [copiedField, setCopiedField] = useState<string | null>(null);
 
   const handleExportCSV = () => {
     const csv = Papa.unparse([
@@ -109,12 +110,61 @@ const PropertyTable: React.FC<PropertyTableProps> = ({ info }) => {
     return `$${value}`;
   };
 
+  const copyToClipboard = async (text: string, fieldName: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopiedField(fieldName);
+      setTimeout(() => setCopiedField(null), 2000); // Clear after 2 seconds
+    } catch (err) {
+      console.error('Failed to copy text: ', err);
+    }
+  };
+
+  const CopyableField: React.FC<{ 
+    value: string | number; 
+    fieldName: string; 
+    className?: string;
+    prefix?: string;
+  }> = ({ value, fieldName, className = "", prefix = "" }) => {
+    const displayValue = `${prefix}${value}`;
+    const isCopied = copiedField === fieldName;
+    
+    return (
+      <div className="group relative inline-flex items-center">
+        <span className={className}>{displayValue}</span>
+        <button
+          onClick={() => copyToClipboard(displayValue, fieldName)}
+          className="ml-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 p-1 rounded hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          title={`Copy ${fieldName}`}
+        >
+          {isCopied ? (
+            <svg className="w-3 h-3 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+            </svg>
+          ) : (
+            <svg className="w-3 h-3 text-gray-400 hover:text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+            </svg>
+          )}
+        </button>
+      </div>
+    );
+  };
+
   return (
     <div className="mt-8 bg-white rounded-lg shadow-lg border border-gray-200">
       {/* Header */}
       <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white p-6 rounded-t-lg">
         <h2 className="text-2xl font-bold mb-2">Property Information Dashboard</h2>
-        <p className="text-blue-100">Extracted from HCAD Screenshot</p>
+        <div className="flex items-center justify-between">
+          <p className="text-blue-100">Extracted from HCAD Screenshot</p>
+          <div className="flex items-center text-blue-100 text-sm">
+            <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+            </svg>
+            <span>Hover to copy any field</span>
+          </div>
+        </div>
       </div>
 
       {/* Navigation Tabs */}
@@ -178,7 +228,11 @@ const PropertyTable: React.FC<PropertyTableProps> = ({ info }) => {
                   </div>
                   <div className="ml-4">
                     <p className="text-sm font-medium text-green-600">Appraisal Value</p>
-                    <p className="text-2xl font-bold text-green-900">{formatCurrency(info.appraisal)}</p>
+                    <CopyableField 
+                      value={info.appraisal} 
+                      fieldName="Appraisal Value"
+                      className="text-2xl font-bold text-green-900"
+                    />
                   </div>
                 </div>
               </div>
@@ -193,7 +247,11 @@ const PropertyTable: React.FC<PropertyTableProps> = ({ info }) => {
                   </div>
                   <div className="ml-4">
                     <p className="text-sm font-medium text-blue-600">Property Size</p>
-                    <p className="text-2xl font-bold text-blue-900">{info.size}</p>
+                    <CopyableField 
+                      value={info.size} 
+                      fieldName="Property Size"
+                      className="text-2xl font-bold text-blue-900"
+                    />
                   </div>
                 </div>
               </div>
@@ -207,7 +265,11 @@ const PropertyTable: React.FC<PropertyTableProps> = ({ info }) => {
                   </div>
                   <div className="ml-4">
                     <p className="text-sm font-medium text-purple-600">Parcel ID</p>
-                    <p className="text-lg font-bold text-purple-900 font-mono">{info.parcelId}</p>
+                    <CopyableField 
+                      value={info.parcelId} 
+                      fieldName="Parcel ID"
+                      className="text-lg font-bold text-purple-900 font-mono"
+                    />
                   </div>
                 </div>
               </div>
@@ -219,15 +281,33 @@ const PropertyTable: React.FC<PropertyTableProps> = ({ info }) => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700">Property Address</label>
-                  <p className="mt-1 text-lg text-gray-900 font-medium">{info.propertyAddress}</p>
+                  <div className="mt-1">
+                    <CopyableField 
+                      value={info.propertyAddress} 
+                      fieldName="Property Address"
+                      className="text-lg text-gray-900 font-medium"
+                    />
+                  </div>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700">Mailing Address</label>
-                  <p className="mt-1 text-lg text-gray-900 font-medium">{info.mailingAddress}</p>
+                  <div className="mt-1">
+                    <CopyableField 
+                      value={info.mailingAddress} 
+                      fieldName="Mailing Address"
+                      className="text-lg text-gray-900 font-medium"
+                    />
+                  </div>
                 </div>
                 <div className="md:col-span-2">
                   <label className="block text-sm font-medium text-gray-700">Property Owner</label>
-                  <p className="mt-1 text-lg text-gray-900 font-medium">{info.owner || info.ownerName || 'N/A'}</p>
+                  <div className="mt-1">
+                    <CopyableField 
+                      value={info.owner || info.ownerName || 'N/A'} 
+                      fieldName="Property Owner"
+                      className="text-lg text-gray-900 font-medium"
+                    />
+                  </div>
                 </div>
               </div>
             </div>
@@ -243,27 +323,51 @@ const PropertyTable: React.FC<PropertyTableProps> = ({ info }) => {
               <div className="divide-y divide-gray-200">
                 <div className="px-6 py-4 flex justify-between items-center">
                   <span className="text-sm font-medium text-gray-700">Property Address:</span>
-                  <span className="text-sm text-gray-900">{info.propertyAddress}</span>
+                  <CopyableField 
+                    value={info.propertyAddress} 
+                    fieldName="Property Address (Details)"
+                    className="text-sm text-gray-900"
+                  />
                 </div>
                 <div className="px-6 py-4 flex justify-between items-center">
                   <span className="text-sm font-medium text-gray-700">Mailing Address:</span>
-                  <span className="text-sm text-gray-900">{info.mailingAddress}</span>
+                  <CopyableField 
+                    value={info.mailingAddress} 
+                    fieldName="Mailing Address (Details)"
+                    className="text-sm text-gray-900"
+                  />
                 </div>
                 <div className="px-6 py-4 flex justify-between items-center">
                   <span className="text-sm font-medium text-gray-700">HCAD Appraisal:</span>
-                  <span className="text-sm font-semibold text-green-600">{formatCurrency(info.appraisal)}</span>
+                  <CopyableField 
+                    value={info.appraisal} 
+                    fieldName="HCAD Appraisal (Details)"
+                    className="text-sm font-semibold text-green-600"
+                  />
                 </div>
                 <div className="px-6 py-4 flex justify-between items-center">
                   <span className="text-sm font-medium text-gray-700">Property Owner:</span>
-                  <span className="text-sm text-gray-900">{info.owner || info.ownerName || 'N/A'}</span>
+                  <CopyableField 
+                    value={info.owner || info.ownerName || 'N/A'} 
+                    fieldName="Property Owner (Details)"
+                    className="text-sm text-gray-900"
+                  />
                 </div>
                 <div className="px-6 py-4 flex justify-between items-center">
                   <span className="text-sm font-medium text-gray-700">Size:</span>
-                  <span className="text-sm text-gray-900">{info.size}</span>
+                  <CopyableField 
+                    value={info.size} 
+                    fieldName="Property Size (Details)"
+                    className="text-sm text-gray-900"
+                  />
                 </div>
                 <div className="px-6 py-4 flex justify-between items-center">
                   <span className="text-sm font-medium text-gray-700">Parcel ID:</span>
-                  <span className="text-sm font-mono text-gray-900">{info.parcelId}</span>
+                  <CopyableField 
+                    value={info.parcelId} 
+                    fieldName="Parcel ID (Details)"
+                    className="text-sm font-mono text-gray-900"
+                  />
                 </div>
               </div>
             </div>

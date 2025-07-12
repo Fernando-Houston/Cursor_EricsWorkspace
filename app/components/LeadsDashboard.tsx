@@ -23,6 +23,7 @@ const LeadsDashboard: React.FC<LeadsDashboardProps> = ({ onBackToLanding }) => {
   const [sortBy, setSortBy] = useState<'date' | 'appraisal' | 'address'>('date');
   const [viewModalLead, setViewModalLead] = useState<PropertyInfo | null>(null);
   const [deleteConfirmLead, setDeleteConfirmLead] = useState<PropertyInfo | null>(null);
+  const [copiedField, setCopiedField] = useState<string | null>(null);
 
   // Mock data - in a real app, this would come from a database
   useEffect(() => {
@@ -150,6 +151,45 @@ const LeadsDashboard: React.FC<LeadsDashboardProps> = ({ onBackToLanding }) => {
       setLeads(leads.filter(lead => lead.id !== deleteConfirmLead.id));
       setDeleteConfirmLead(null);
     }
+  };
+
+  const copyToClipboard = async (text: string, fieldName: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopiedField(fieldName);
+      setTimeout(() => setCopiedField(null), 2000); // Clear after 2 seconds
+    } catch (err) {
+      console.error('Failed to copy text: ', err);
+    }
+  };
+
+  const CopyableField: React.FC<{ 
+    value: string; 
+    fieldName: string; 
+    className?: string;
+  }> = ({ value, fieldName, className = "" }) => {
+    const isCopied = copiedField === fieldName;
+    
+    return (
+      <div className="group relative inline-flex items-center">
+        <span className={className}>{value}</span>
+        <button
+          onClick={() => copyToClipboard(value, fieldName)}
+          className="ml-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200 p-1 rounded hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          title={`Copy ${fieldName}`}
+        >
+          {isCopied ? (
+            <svg className="w-3 h-3 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+            </svg>
+          ) : (
+            <svg className="w-3 h-3 text-gray-400 hover:text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+            </svg>
+          )}
+        </button>
+      </div>
+    );
   };
 
   return (
@@ -307,7 +347,15 @@ const LeadsDashboard: React.FC<LeadsDashboardProps> = ({ onBackToLanding }) => {
         {/* Leads Table */}
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
           <div className="px-6 py-4 border-b border-gray-200">
-            <h3 className="text-lg font-semibold text-gray-900">Property Leads ({sortedLeads.length})</h3>
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg font-semibold text-gray-900">Property Leads ({sortedLeads.length})</h3>
+              <div className="flex items-center text-gray-500 text-sm">
+                <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                </svg>
+                <span>Hover any cell to copy</span>
+              </div>
+            </div>
           </div>
           
           {sortedLeads.length === 0 ? (
@@ -353,21 +401,45 @@ const LeadsDashboard: React.FC<LeadsDashboardProps> = ({ onBackToLanding }) => {
                     <tr key={lead.id} className="hover:bg-gray-50">
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div>
-                          <div className="text-sm font-medium text-gray-900">{lead.propertyAddress}</div>
-                          <div className="text-sm text-gray-500">{lead.mailingAddress}</div>
+                          <CopyableField 
+                            value={lead.propertyAddress} 
+                            fieldName={`Property Address ${lead.id}`}
+                            className="text-sm font-medium text-gray-900"
+                          />
+                          <CopyableField 
+                            value={lead.mailingAddress} 
+                            fieldName={`Mailing Address ${lead.id}`}
+                            className="text-sm text-gray-500"
+                          />
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-900">{lead.owner}</div>
+                        <CopyableField 
+                          value={lead.owner} 
+                          fieldName={`Owner ${lead.id}`}
+                          className="text-sm text-gray-900"
+                        />
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm font-semibold text-green-600">{lead.appraisal}</div>
+                        <CopyableField 
+                          value={lead.appraisal} 
+                          fieldName={`Appraisal ${lead.id}`}
+                          className="text-sm font-semibold text-green-600"
+                        />
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-900">{lead.size}</div>
+                        <CopyableField 
+                          value={lead.size} 
+                          fieldName={`Size ${lead.id}`}
+                          className="text-sm text-gray-900"
+                        />
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm font-mono text-gray-900">{lead.parcelId}</div>
+                        <CopyableField 
+                          value={lead.parcelId} 
+                          fieldName={`Parcel ID ${lead.id}`}
+                          className="text-sm font-mono text-gray-900"
+                        />
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="text-sm text-gray-900">
