@@ -401,16 +401,21 @@ const LeadsDashboard: React.FC<LeadsDashboardProps> = ({ onBackToLanding }) => {
                     <tr key={lead.id} className="hover:bg-gray-50">
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div>
-                          <CopyableField 
-                            value={lead.propertyAddress} 
-                            fieldName={`Property Address ${lead.id}`}
-                            className="text-sm font-medium text-gray-900"
-                          />
-                          <CopyableField 
-                            value={lead.mailingAddress} 
-                            fieldName={`Mailing Address ${lead.id}`}
-                            className="text-sm text-gray-500"
-                          />
+                          <div className="mb-1">
+                            <CopyableField 
+                              value={lead.propertyAddress} 
+                              fieldName={`Property Address ${lead.id}`}
+                              className="text-sm font-medium text-gray-900"
+                            />
+                          </div>
+                          <div className="flex items-center">
+                            <span className="text-xs text-gray-400 mr-1">Mail:</span>
+                            <CopyableField 
+                              value={lead.mailingAddress} 
+                              fieldName={`Mailing Address ${lead.id}`}
+                              className="text-sm text-gray-500"
+                            />
+                          </div>
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
