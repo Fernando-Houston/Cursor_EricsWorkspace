@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import Image from 'next/image';
+import LoadingProgress from './LoadingProgress';
 
 interface PropertyInfo {
   propertyAddress: string;
@@ -19,6 +21,7 @@ const UploadForm: React.FC<UploadFormProps> = ({ onResult }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [processingStage, setProcessingStage] = useState<'idle' | 'vision' | 'enhancement' | 'complete'>('idle');
+  const [progress, setProgress] = useState(0);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -44,6 +47,7 @@ const UploadForm: React.FC<UploadFormProps> = ({ onResult }) => {
     setLoading(true);
     setError(null);
     setProcessingStage('vision');
+    setProgress(0);
     
     const formData = new FormData();
     formData.append('file', file);
@@ -51,11 +55,24 @@ const UploadForm: React.FC<UploadFormProps> = ({ onResult }) => {
     console.log('Submitting file:', file.name, file.size, 'bytes');
     
     try {
-      // Simulate stage progression for better UX
+      // Simulate realistic progress updates
+      const progressInterval = setInterval(() => {
+        setProgress(prev => {
+          if (processingStage === 'vision' && prev < 40) {
+            return prev + Math.random() * 5;
+          } else if (processingStage === 'enhancement' && prev < 80) {
+            return prev + Math.random() * 3;
+          } else if (processingStage === 'complete' && prev < 100) {
+            return 100;
+          }
+          return prev;
+        });
+      }, 200);
+
+      // Stage progression
       setTimeout(() => {
-        if (processingStage === 'vision') {
-          setProcessingStage('enhancement');
-        }
+        setProcessingStage('enhancement');
+        setProgress(45);
       }, 2000);
       
       const res = await fetch('/api/property-info', {
@@ -66,28 +83,35 @@ const UploadForm: React.FC<UploadFormProps> = ({ onResult }) => {
       console.log('Response status:', res.status);
       
       if (!res.ok) {
+        clearInterval(progressInterval);
         const err = await res.json();
         console.error('API error:', err);
         setError(err.error || 'Failed to process image.');
         setLoading(false);
         setProcessingStage('idle');
+        setProgress(0);
         return;
       }
       const data = await res.json();
       console.log('API response:', data);
+      
+      clearInterval(progressInterval);
       setProcessingStage('complete');
+      setProgress(100);
       onResult(data);
       setLoading(false);
       
       // Reset stage after a moment
       setTimeout(() => {
         setProcessingStage('idle');
-      }, 1000);
+        setProgress(0);
+      }, 1500);
     } catch (error) {
       console.error('Fetch error:', error);
       setError('An error occurred.');
       setLoading(false);
       setProcessingStage('idle');
+      setProgress(0);
     }
   };
 
@@ -126,11 +150,16 @@ const UploadForm: React.FC<UploadFormProps> = ({ onResult }) => {
           <div className="space-y-3">
             {/* Image Preview */}
             <div className="relative">
-              <img
-                src={preview}
-                alt="Screenshot preview"
-                className="w-full max-h-48 object-contain rounded-lg border border-gray-200"
-              />
+              <div className="relative w-full max-h-48 rounded-lg border border-gray-200 overflow-hidden">
+                <Image
+                  src={preview || ''}
+                  alt="Screenshot preview"
+                  width={400}
+                  height={192}
+                  className="w-full h-full object-contain"
+                  unoptimized
+                />
+              </div>
               <button
                 type="button"
                 onClick={clearFile}
@@ -158,61 +187,41 @@ const UploadForm: React.FC<UploadFormProps> = ({ onResult }) => {
         )}
       </div>
 
-      {/* Processing Stages Indicator */}
+      {/* Enhanced Loading Progress */}
       {loading && (
-        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-4 border border-blue-200">
-          <div className="flex items-center justify-between mb-3">
-            <h3 className="text-sm font-medium text-blue-900">AI Processing Pipeline</h3>
-            <div className="flex items-center">
-              <svg className="animate-spin h-4 w-4 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        <LoadingProgress
+          currentStage={processingStage}
+          progress={progress}
+          stages={[
+            {
+              id: 'vision',
+              label: 'OpenAI Vision Analysis',
+              description: 'Reading and extracting text from HCAD screenshot',
+              duration: 3,
+              icon: <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
               </svg>
-            </div>
-          </div>
-          
-          <div className="space-y-2">
-            {/* Stage 1: Vision */}
-            <div className="flex items-center">
-              <div className={`w-4 h-4 rounded-full mr-3 flex items-center justify-center ${
-                processingStage === 'vision' ? 'bg-blue-500 animate-pulse' : 
-                processingStage === 'enhancement' || processingStage === 'complete' ? 'bg-green-500' : 'bg-gray-300'
-              }`}>
-                {(processingStage === 'enhancement' || processingStage === 'complete') && (
-                  <svg className="w-2 h-2 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-                  </svg>
-                )}
-              </div>
-              <span className={`text-sm ${
-                processingStage === 'vision' ? 'text-blue-700 font-medium' : 
-                processingStage === 'enhancement' || processingStage === 'complete' ? 'text-green-700' : 'text-gray-600'
-              }`}>
-                OpenAI Vision - Reading HCAD screenshot
-              </span>
-            </div>
-            
-            {/* Stage 2: Enhancement */}
-            <div className="flex items-center">
-              <div className={`w-4 h-4 rounded-full mr-3 flex items-center justify-center ${
-                processingStage === 'enhancement' ? 'bg-purple-500 animate-pulse' : 
-                processingStage === 'complete' ? 'bg-green-500' : 'bg-gray-300'
-              }`}>
-                {processingStage === 'complete' && (
-                  <svg className="w-2 h-2 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-                  </svg>
-                )}
-              </div>
-              <span className={`text-sm ${
-                processingStage === 'enhancement' ? 'text-purple-700 font-medium' : 
-                processingStage === 'complete' ? 'text-green-700' : 'text-gray-600'
-              }`}>
-                Perplexity Search - Enhancing with HCAD data
-              </span>
-            </div>
-          </div>
-        </div>
+            },
+            {
+              id: 'enhancement',
+              label: 'Perplexity Enhancement',
+              description: 'Enriching property data with additional information',
+              duration: 4,
+              icon: <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+              </svg>
+            },
+            {
+              id: 'complete',
+              label: 'Processing Complete',
+              description: 'Data extraction and enhancement finished',
+              icon: <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            }
+          ]}
+        />
       )}
 
       {/* Submit Button */}

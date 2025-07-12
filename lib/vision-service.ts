@@ -33,6 +33,7 @@ export interface PropertyData {
   pool: boolean;
   garage: string;
   confidence: number;
+  [key: string]: unknown;
   // Enhanced data fields (optional)
   recentAppraisals?: Array<{
     year: string;

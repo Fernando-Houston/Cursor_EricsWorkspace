@@ -105,7 +105,7 @@ If you cannot find the property or data, return null. Focus on the official HCAD
     try {
       const enhancedData = JSON.parse(content) as EnhancedPropertyData;
       return enhancedData;
-    } catch (parseError) {
+    } catch {
       console.warn('Could not parse Perplexity response as JSON:', content);
       return null;
     }
@@ -115,10 +115,10 @@ If you cannot find the property or data, return null. Focus on the official HCAD
   }
 }
 
-export function mergePropertyData(
-  visionData: any,
+export function mergePropertyData<T extends Record<string, unknown>>(
+  visionData: T,
   enhancedData: EnhancedPropertyData | null
-): any {
+): T & Partial<EnhancedPropertyData> {
   if (!enhancedData) {
     return visionData;
   }
@@ -131,7 +131,7 @@ export function mergePropertyData(
     taxHistory: enhancedData.taxHistory,
     salesHistory: enhancedData.salesHistory,
     propertyDetails: {
-      ...visionData.propertyDetails,
+      ...(visionData.propertyDetails as Record<string, unknown> || {}),
       ...enhancedData.propertyDetails,
     },
     enhancedConfidence: enhancedData.confidence,
