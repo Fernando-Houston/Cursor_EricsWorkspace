@@ -1,6 +1,6 @@
 "use client";
-import React, { useState } from 'react';
-import UploadForm from './components/UploadForm';
+import React, { useState, useRef } from 'react';
+import UploadForm, { UploadFormRef } from './components/UploadForm';
 import PropertyTable from './components/PropertyTable';
 import LeadsDashboard from './components/LeadsDashboard';
 
@@ -16,10 +16,18 @@ interface PropertyInfo {
 export default function Home() {
   const [currentView, setCurrentView] = useState<'landing' | 'results' | 'dashboard'>('landing');
   const [propertyInfo, setPropertyInfo] = useState<PropertyInfo | null>(null);
+  const [uploadStatus, setUploadStatus] = useState<{ loading: boolean; hasFile: boolean; error: string | null; processingStage: string }>({ loading: false, hasFile: false, error: null, processingStage: 'idle' });
+  const uploadFormRef = useRef<UploadFormRef>(null);
 
   const handleUploadSuccess = (info: PropertyInfo) => {
     setPropertyInfo(info);
     setCurrentView('results');
+  };
+
+  const handleSubmitClick = () => {
+    if (uploadFormRef.current) {
+      uploadFormRef.current.submitForm();
+    }
   };
 
   const handleGoToDashboard = () => {
@@ -156,9 +164,13 @@ export default function Home() {
                       </p>
                     </div>
 
-                    {/* Upload Button */}
+                    {/* Upload Form */}
                     <div className="w-full">
-                      <UploadForm onResult={handleUploadSuccess} />
+                      <UploadForm 
+                        ref={uploadFormRef}
+                        onResult={handleUploadSuccess}
+                        onStatusChange={setUploadStatus}
+                      />
                     </div>
                   </div>
                 </div>
@@ -170,6 +182,52 @@ export default function Home() {
             <div className="absolute -bottom-4 -left-4 w-6 h-6 bg-green-400 rounded-full animate-pulse delay-1000"></div>
           </div>
         </div>
+
+        {/* External Submit Button */}
+        <div className="flex justify-center mt-8">
+          <button
+            onClick={handleSubmitClick}
+            disabled={uploadStatus.loading || !uploadStatus.hasFile}
+            className="flex justify-center items-center px-8 py-4 border border-transparent text-lg font-medium rounded-lg text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-lg"
+          >
+            {uploadStatus.loading ? (
+              <>
+                <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                {uploadStatus.processingStage === 'vision' ? 'Reading Screenshot...' : 
+                 uploadStatus.processingStage === 'enhancement' ? 'Enhancing Data...' : 
+                 uploadStatus.processingStage === 'complete' ? 'Complete!' : 'Processing...'}
+              </>
+            ) : (
+              <>
+                <svg className="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                Extract Property Data
+              </>
+            )}
+          </button>
+        </div>
+
+        {/* Error Display */}
+        {uploadStatus.error && (
+          <div className="flex justify-center mt-4">
+            <div className="bg-red-50 border border-red-200 rounded-lg p-4 max-w-md">
+              <div className="flex">
+                <div className="flex-shrink-0">
+                  <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                  </svg>
+                </div>
+                <div className="ml-3">
+                  <p className="text-sm text-red-700">{uploadStatus.error}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Features */}
         <div className="mt-16 grid grid-cols-1 md:grid-cols-3 gap-8">
