@@ -1,0 +1,12 @@
+{
+  "functions": {
+    "app/api/property-info/route.ts": {
+      "maxDuration": 60
+    }
+  },
+  "build": {
+    "env": {
+      "NODE_OPTIONS": "--max-old-space-size=4096"
+    }
+  }
+} 
