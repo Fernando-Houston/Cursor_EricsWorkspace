@@ -204,16 +204,5 @@ Return ONLY the JSON object, no additional text or markdown formatting.`
   }
 }
 
-export async function convertImageToBase64(file: File): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => {
-      const base64 = reader.result as string;
-      // Remove the data URL prefix to get just the base64 string
-      const base64String = base64.split(',')[1];
-      resolve(base64String);
-    };
-    reader.onerror = reject;
-    reader.readAsDataURL(file);
-  });
-} 
+// Note: convertImageToBase64 function removed - file conversion now handled directly in API route
+// to avoid FileReader dependency which is browser-only 

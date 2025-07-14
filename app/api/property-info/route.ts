@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { extractPropertyData, convertImageToBase64 } from '../../../lib/vision-service';
+import { extractPropertyData } from '../../../lib/vision-service';
 import { enhancePropertyData, mergePropertyData } from '../../../lib/perplexity-service';
 
 export const runtime = 'nodejs';
@@ -35,9 +35,11 @@ export async function POST(req: NextRequest) {
     console.log('📊 File size:', file.size, 'bytes');
     console.log('🎯 File type:', file.type);
 
-    // Convert file to base64
+    // Convert file to base64 using Node.js APIs
     console.log('🔄 Converting image to base64...');
-    const imageBase64 = await convertImageToBase64(file);
+    const arrayBuffer = await file.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
+    const imageBase64 = buffer.toString('base64');
     
     // Stage 1: Extract property data using OpenAI Vision
     console.log('🤖 Stage 1: Extracting property data with OpenAI Vision...');
