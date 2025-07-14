@@ -1,21 +1,41 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { extractPropertyData } from '../../../lib/vision-service';
-import { enhancePropertyData, mergePropertyData } from '../../../lib/perplexity-service';
+import { extractPropertyData, PropertyData } from '../../../lib/vision-service';
+
+// Types for the data structures
+interface HCADData {
+  ownerName?: string;
+  propertyAddress?: string;
+  mailingAddress?: string;
+  totalValuation?: string;
+  landValue?: string;
+  improvementValue?: string;
+  stateClassCode?: string;
+  propertyType?: string;
+  yearBuilt?: number;
+  taxYear?: number;
+  landArea?: string;
+  legalDescription?: string;
+  neighborhood?: string;
+  landUseCode?: string;
+  totalLivingArea?: string;
+  marketArea?: string;
+  error?: boolean;
+}
 
 // Function to merge vision data with HCAD search results
-function mergeHCADData(visionData: any, hcadData: any) {
+function mergeHCADData(visionData: PropertyData, hcadData: HCADData) {
   return {
     ...visionData,
     // Override with HCAD data where available
     ownerName: hcadData.ownerName || visionData.ownerName,
     propertyAddress: hcadData.propertyAddress || visionData.propertyAddress,
     mailingAddress: hcadData.mailingAddress || visionData.mailingAddress,
-    totalValue: parseFloat(hcadData.totalValuation?.replace(/[^\d.]/g, '')) || visionData.totalValue,
-    landValue: parseFloat(hcadData.landValue?.replace(/[^\d.]/g, '')) || visionData.landValue,
-    improvementValue: parseFloat(hcadData.improvementValue?.replace(/[^\d.]/g, '')) || visionData.improvementValue,
+    totalValue: parseFloat(hcadData.totalValuation?.replace(/[^\d.]/g, '') || '0') || visionData.totalValue,
+    landValue: parseFloat(hcadData.landValue?.replace(/[^\d.]/g, '') || '0') || visionData.landValue,
+    improvementValue: parseFloat(hcadData.improvementValue?.replace(/[^\d.]/g, '') || '0') || visionData.improvementValue,
     propertyType: hcadData.stateClassCode || hcadData.propertyType || visionData.propertyType,
     yearBuilt: hcadData.yearBuilt || visionData.yearBuilt,
-    taxYear: hcadData.taxYear || visionData.taxYear,
+    taxYear: hcadData.taxYear?.toString() || visionData.taxYear,
     lotSize: hcadData.landArea || visionData.lotSize,
     // Add HCAD-specific detailed data
     legalDescription: hcadData.legalDescription || visionData.legalDescription,
@@ -159,8 +179,8 @@ export async function POST(req: NextRequest) {
       
       // HCAD specific data
       hcadData: finalData.hcadData || null,
-      landArea: (finalData.hcadData && (finalData.hcadData as any).landArea) || finalData.lotSize || null,
-      totalValuation: (finalData.hcadData && (finalData.hcadData as any).totalValuation) || 
+      landArea: (finalData.hcadData && (finalData.hcadData as HCADData).landArea) || finalData.lotSize || null,
+      totalValuation: (finalData.hcadData && (finalData.hcadData as HCADData).totalValuation) || 
                      (finalData.totalValue ? `$${finalData.totalValue.toLocaleString()}` : null),
       
       // Confidence scores

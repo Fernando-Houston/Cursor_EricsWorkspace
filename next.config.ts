@@ -12,10 +12,8 @@ const nextConfig: NextConfig = {
     return config;
   },
   
-  // Add experimental configuration for better compatibility
-  experimental: {
-    serverComponentsExternalPackages: ['node-fetch'],
-  },
+  // Updated configuration for better compatibility
+  serverExternalPackages: ['node-fetch'],
   
   // Add headers for better CORS support
   async headers() {
