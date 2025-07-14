@@ -24,6 +24,34 @@ export default function Home() {
     setCurrentView('results');
   };
 
+  const handleSaveToLeads = () => {
+    if (propertyInfo) {
+      // Get existing leads from localStorage
+      const existingLeads = JSON.parse(localStorage.getItem('hcad-leads') || '[]');
+      
+      // Create new lead entry with all extracted data
+      const newLead = {
+        ...propertyInfo,
+        id: Date.now().toString(),
+        dateAdded: new Date().toISOString().split('T')[0],
+        // Ensure required fields have fallback values
+        propertyAddress: propertyInfo.propertyAddress || 'Not Available',
+        mailingAddress: propertyInfo.mailingAddress || propertyInfo.propertyAddress || 'Not Available',
+        appraisal: propertyInfo.appraisal || 'Not Available',
+        owner: propertyInfo.owner || 'Not Available',
+        size: propertyInfo.size || 'Not Available',
+        parcelId: propertyInfo.parcelId || 'Not Available'
+      };
+      
+      // Add to leads and save
+      const updatedLeads = [newLead, ...existingLeads];
+      localStorage.setItem('hcad-leads', JSON.stringify(updatedLeads));
+      
+      // Show success message (you can enhance this with a toast notification)
+      alert('Property saved to leads successfully!');
+    }
+  };
+
   const handleSubmitClick = () => {
     if (uploadFormRef.current) {
       uploadFormRef.current.submitForm();
@@ -82,7 +110,7 @@ export default function Home() {
 
         {/* Results Content */}
         <main className="max-w-4xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
-          <PropertyTable info={propertyInfo} />
+          <PropertyTable info={propertyInfo} onSaveToLeads={handleSaveToLeads} />
         </main>
       </div>
     );

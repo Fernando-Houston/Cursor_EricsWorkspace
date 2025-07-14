@@ -34,43 +34,39 @@ const LeadsDashboard: React.FC<LeadsDashboardProps> = ({ onBackToLanding }) => {
   const [selectedLeads, setSelectedLeads] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Mock data - in a real app, this would come from a database
+  // Load leads from localStorage
   useEffect(() => {
-    const mockLeads: PropertyInfo[] = [
-      {
-        id: '1',
-        propertyAddress: '1712 MOODY',
-        mailingAddress: '1712 MOODY ST, HOUSTON, TX 77009',
-        appraisal: '$150,000',
-        owner: 'BENNETT CLARA MRS ESTATE OF',
-        size: '5,000 sqft',
-        parcelId: '0311370000012',
-        dateAdded: '2024-01-15'
-      },
-      {
-        id: '2',
-        propertyAddress: '1234 MAIN ST',
-        mailingAddress: '1234 MAIN ST, HOUSTON, TX 77002',
-        appraisal: '$250,000',
-        owner: 'SMITH JOHN A',
-        size: '7,500 sqft',
-        parcelId: '0311370000013',
-        dateAdded: '2024-01-14'
-      },
-      {
-        id: '3',
-        propertyAddress: '5678 OAK AVE',
-        mailingAddress: '5678 OAK AVE, HOUSTON, TX 77003',
-        appraisal: '$180,000',
-        owner: 'JOHNSON MARY L',
-        size: '6,200 sqft',
-        parcelId: '0311370000014',
-        dateAdded: '2024-01-13'
+    const loadLeads = () => {
+      try {
+        const savedLeads = localStorage.getItem('hcad-leads');
+        if (savedLeads) {
+          const parsedLeads = JSON.parse(savedLeads);
+          setLeads(parsedLeads);
+        } else {
+          // If no saved leads, show empty state
+          setLeads([]);
+        }
+      } catch (error) {
+        console.error('Error loading leads:', error);
+        setLeads([]);
       }
-    ];
-    // Load data immediately for better performance
-    setLeads(mockLeads);
-    setLoading(false);
+      setLoading(false);
+    };
+
+    loadLeads();
+    
+    // Listen for storage changes (when leads are saved from other tabs/components)
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'hcad-leads') {
+        loadLeads();
+      }
+    };
+    
+    window.addEventListener('storage', handleStorageChange);
+    
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+    };
   }, []);
 
   const filteredLeads = useMemo(() => {
@@ -167,7 +163,9 @@ const LeadsDashboard: React.FC<LeadsDashboardProps> = ({ onBackToLanding }) => {
 
   const confirmDelete = () => {
     if (deleteConfirmLead) {
-      setLeads(leads.filter(lead => lead.id !== deleteConfirmLead.id));
+      const updatedLeads = leads.filter(lead => lead.id !== deleteConfirmLead.id);
+      setLeads(updatedLeads);
+      localStorage.setItem('hcad-leads', JSON.stringify(updatedLeads));
       setDeleteConfirmLead(null);
     }
   };
@@ -212,7 +210,9 @@ const LeadsDashboard: React.FC<LeadsDashboardProps> = ({ onBackToLanding }) => {
   }, [sortedLeads, selectedLeads]);
 
   const handleBulkDelete = useCallback(() => {
-    setLeads(leads.filter(lead => !selectedLeads.includes(lead.id)));
+    const updatedLeads = leads.filter(lead => !selectedLeads.includes(lead.id));
+    setLeads(updatedLeads);
+    localStorage.setItem('hcad-leads', JSON.stringify(updatedLeads));
     setSelectedLeads([]);
   }, [leads, selectedLeads]);
 

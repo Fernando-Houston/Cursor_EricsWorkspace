@@ -66,9 +66,10 @@ interface PropertyInfo {
 
 interface PropertyTableProps {
   info: PropertyInfo;
+  onSaveToLeads?: () => void;
 }
 
-const PropertyTable: React.FC<PropertyTableProps> = ({ info }) => {
+const PropertyTable: React.FC<PropertyTableProps> = ({ info, onSaveToLeads }) => {
   const [activeTab, setActiveTab] = useState<'overview' | 'details' | 'history' | 'export'>('overview');
   const [copiedField, setCopiedField] = useState<string | null>(null);
 
@@ -604,6 +605,27 @@ const PropertyTable: React.FC<PropertyTableProps> = ({ info }) => {
 
         {activeTab === 'export' && (
           <div className="space-y-6">
+            {/* Save to Leads Button */}
+            {onSaveToLeads && (
+              <div className="bg-gradient-to-r from-blue-50 to-blue-100 rounded-lg p-6 border border-blue-200">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="text-lg font-semibold text-blue-900 mb-2">Save to Leads Database</h3>
+                    <p className="text-blue-700">Add this property to your leads for future reference and management.</p>
+                  </div>
+                  <button
+                    onClick={onSaveToLeads}
+                    className="flex items-center px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors font-medium"
+                  >
+                    <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4" />
+                    </svg>
+                    Save to Leads
+                  </button>
+                </div>
+              </div>
+            )}
+
             <div className="bg-gray-50 rounded-lg p-6">
               <h3 className="text-lg font-semibold text-gray-900 mb-4">Export Options</h3>
               <p className="text-gray-600 mb-6">Choose your preferred format to download the property information.</p>
