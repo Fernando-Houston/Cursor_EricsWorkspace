@@ -24,6 +24,72 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              // Polyfill for requestIdleCallback (Safari compatibility)
+              (function() {
+                'use strict';
+                
+                if (typeof window !== 'undefined' && !window.requestIdleCallback) {
+                  var lastTime = 0;
+                  
+                  window.requestIdleCallback = function(callback, options) {
+                    var now = Date.now();
+                    var timeout = (options && options.timeout) || 0;
+                    var timeToCall = Math.max(0, 16 - (now - lastTime));
+                    
+                    var id = setTimeout(function() {
+                      callback({
+                        didTimeout: false,
+                        timeRemaining: function() {
+                          return Math.max(0, 50 - (Date.now() - now));
+                        }
+                      });
+                    }, timeToCall);
+                    
+                    lastTime = now + timeToCall;
+                    return id;
+                  };
+                }
+                
+                if (typeof window !== 'undefined' && !window.cancelIdleCallback) {
+                  window.cancelIdleCallback = function(id) {
+                    clearTimeout(id);
+                  };
+                }
+              })();
+              
+              // Additional polyfills for React compatibility
+              if (typeof window !== 'undefined' && !window.MessageChannel) {
+                window.MessageChannel = function() {
+                  var channel = {};
+                  channel.port1 = {
+                    postMessage: function(data) {
+                      if (channel.port2.onmessage) {
+                        setTimeout(function() {
+                          channel.port2.onmessage({ data: data });
+                        }, 0);
+                      }
+                    }
+                  };
+                  channel.port2 = {
+                    postMessage: function(data) {
+                      if (channel.port1.onmessage) {
+                        setTimeout(function() {
+                          channel.port1.onmessage({ data: data });
+                        }, 0);
+                      }
+                    }
+                  };
+                  return channel;
+                };
+              }
+            `,
+          }}
+        />
+      </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >

@@ -1,52 +1,48 @@
-# 🏠 HCAD Property Extractor - AI-Powered Real Estate Intelligence
+# HCAD Property Extraction Platform
 
-A Next.js application that uses **OpenAI Vision API** and **Perplexity Search** to extract comprehensive property information from Harris County Appraisal District (HCAD) screenshots.
+A Next.js 15 AI-powered property extraction application that extracts property data from Harris County Appraisal District (HCAD) screenshots and enhances it with official HCAD records.
 
 ## 🚀 Features
 
-### 🤖 AI-Powered Data Extraction
-- **OpenAI Vision (GPT-4o-mini)**: Reads HCAD screenshots with 90-95% accuracy
-- **Two-Stage Processing**: Vision extraction + web enhancement
-- **Comprehensive Data**: 25+ property fields including owner, appraisal, characteristics, and more
+### Property Data Extraction
+- **AI Vision Processing**: Uses OpenAI GPT-4 Vision to extract property data from HCAD screenshots
+- **HCAD Integration**: Retrieves official property records from HCAD website using parcel IDs
+- **Dual-Stage Processing**: Vision extraction followed by official record enhancement
 
-### 📊 Property Intelligence Dashboard
-- **Multi-Tab Interface**: Overview, Details, History & Analytics, Export
-- **Real-time Processing**: Visual indicators for AI processing stages
-- **Historical Data**: Appraisal history, tax records, sales transactions
-- **Export Options**: CSV and JSON formats
+### Data Fields Extracted
+- 👤 **Owner Information**: Owner name and mailing address
+- 🏠 **Property Details**: Property address, legal description, land area
+- 💰 **Valuation Data**: Land value, improvement value, total appraised value
+- 📊 **Classification**: State class code, land use code, neighborhood
+- 🏘️ **Additional Details**: Market area, total living area, tax year
 
-### 🎯 Leads Management
-- **Leads Dashboard**: Save and manage extracted property data
-- **Search & Filter**: Find properties by address, owner, or value
-- **Bulk Operations**: Export multiple properties
-- **Action Buttons**: View details, export individual records, delete leads
+### User Interface
+- **Mobile-Optimized**: Responsive design for mobile and desktop
+- **Real-Time Processing**: Live progress updates during extraction
+- **Results Dashboard**: Multi-tab interface for detailed property information
+- **Leads Management**: Save and manage extracted property leads
+- **Data Export**: Export results to CSV and Excel formats
 
-### 🎨 Modern UI/UX
-- **Phone-First Design**: Mobile-optimized upload interface
-- **Gradient Backgrounds**: Beautiful visual design
-- **Loading States**: Smooth processing animations
-- **Error Handling**: Comprehensive error messages and validation
+## 🛠️ Technical Stack
 
-## 🛠️ Technology Stack
-
-- **Frontend**: Next.js 15, React 18, TypeScript, Tailwind CSS
-- **AI Services**: OpenAI Vision API, Perplexity Search API
-- **Data Processing**: Real-time property extraction and enhancement
-- **Deployment**: Vercel/Railway ready
+- **Frontend**: Next.js 15, React 19, TypeScript, Tailwind CSS
+- **Backend**: Node.js, Next.js API Routes
+- **AI Services**: OpenAI GPT-4 Vision API
+- **Data Processing**: Custom HTML parsing for HCAD records
+- **Storage**: LocalStorage for leads persistence
 
 ## 📋 Prerequisites
 
-- Node.js 18+ and npm
-- OpenAI API key (for Vision API)
-- Perplexity API key (for enhanced data)
-- Git for version control
+- Node.js 18+ 
+- OpenAI API Key
+- Modern web browser
 
 ## 🔧 Installation
 
 1. **Clone the repository**
    ```bash
-   git clone <repository-url>
-   cd hcad-property-extractor
+   git clone https://github.com/Fernando-Houston/Cursor_EricsWorkspace.git
+   cd Cursor_EricsWorkspace
    ```
 
 2. **Install dependencies**
@@ -55,169 +51,160 @@ A Next.js application that uses **OpenAI Vision API** and **Perplexity Search** 
    ```
 
 3. **Set up environment variables**
-   Create a `.env.local` file:
+   Create a `.env.local` file in the root directory:
    ```env
-   # OpenAI API Configuration
    OPENAI_API_KEY=your_openai_api_key_here
-   
-   # Perplexity API Configuration  
-   PERPLEXITY_API_KEY=your_perplexity_api_key_here
-   
-   # Next.js Configuration
-   NEXT_PUBLIC_APP_URL=http://localhost:3000
    ```
 
-4. **Run the development server**
+4. **Start the development server**
    ```bash
    npm run dev
    ```
 
-5. **Open your browser**
-   Navigate to `http://localhost:3000` (or the port shown in terminal)
+5. **Open in browser**
+   Navigate to `http://localhost:3001`
+
+## 🧪 Testing
+
+The project includes comprehensive testing scripts:
+
+### Test HCAD Integration
+```bash
+npm run test-hcad
+```
+
+### Test Full Extraction Pipeline
+```bash
+npm run test-extraction
+```
+
+To test with a real HCAD screenshot:
+1. Save your screenshot as `test-screenshot.png` in the project root
+2. Run the test extraction script
 
 ## 🎯 Usage
 
-### 1. Upload HCAD Screenshot
-- Take a screenshot of any HCAD property page
-- Upload through the phone-style interface
-- Watch the AI processing stages in real-time
+1. **Upload Screenshot**: Take a screenshot of the HCAD property search results page
+2. **Extract Data**: The AI will extract property information from the image
+3. **Enhance with HCAD**: System retrieves official records using the parcel ID
+4. **Review Results**: View detailed property information in the dashboard
+5. **Save to Leads**: Add properties to your leads database
+6. **Export Data**: Download results in CSV or Excel format
 
-### 2. Review Extracted Data
-- **Overview Tab**: Key metrics and property summary
-- **Details Tab**: Complete property information
-- **History Tab**: AI processing info and enhanced data (when available)
-- **Export Tab**: Download as CSV or JSON
+## 📊 Data Structure
 
-### 3. Manage Leads
-- Click "View Dashboard" to see all extracted properties
-- Search, filter, and sort your property leads
-- Export individual properties or bulk data
-- Delete unwanted records
+The system extracts and structures the following data:
 
-## 🔍 AI Processing Pipeline
-
-### Stage 1: OpenAI Vision Extraction
-- Analyzes HCAD screenshot with GPT-4o-mini
-- Extracts 25+ property fields
-- Returns confidence score (typically 90-95%)
-- Processing time: 2-5 seconds
-
-### Stage 2: Perplexity Enhancement (Optional)
-- Searches HCAD website for additional data
-- Finds historical appraisals, tax records, sales history
-- Enriches property details (subdivision, school district, etc.)
-- Validates and cross-references vision data
-
-## 📊 Extracted Data Fields
-
-### Basic Property Information
-- Property Address & Mailing Address
-- Owner Name & Parcel ID
-- Property Type & Legal Description
-- Neighborhood & Tax Year
-
-### Appraisal Data
-- Land Value, Improvement Value, Total Value
-- Exemptions & Tax Information
-- Square Footage & Lot Size
-- Acreage & Year Built
-
-### Building Characteristics
-- Bedrooms, Bathrooms, Stories
-- Exterior Wall, Roof Type, Foundation
-- Heating, Cooling Systems
-- Fireplace, Pool, Garage
-
-### Enhanced Data (with Perplexity)
-- Recent Appraisal History (5 years)
-- Tax Payment History
-- Sales & Transfer Records
-- Subdivision & School District Info
-
-## 🚀 Deployment
-
-### Vercel Deployment
-```bash
-npm run build
-vercel --prod
+```typescript
+interface PropertyData {
+  ownerName: string;
+  propertyAddress: string;
+  mailingAddress: string;
+  legalDescription: string;
+  stateClassCode: string;
+  landUseCode: string;
+  landArea: string;
+  totalLivingArea: string;
+  neighborhood: string;
+  marketArea: string;
+  landValue: string;
+  improvementValue: string;
+  totalValuation: string;
+  taxYear: string;
+  // Enhanced data from HCAD
+  hcadData: HCADRecord;
+  enhancedConfidence: number;
+  enhancedBy: string;
+}
 ```
 
-### Railway Deployment
-```bash
-railway login
-railway init
-railway up
+## 🔧 API Endpoints
+
+### POST `/api/property-info`
+Extract property data from uploaded image
+- **Input**: FormData with image file
+- **Output**: Structured property data
+
+### POST `/api/hcad-search`
+Search HCAD records by parcel ID
+- **Input**: `{ parcelId: string }`
+- **Output**: Official HCAD property record
+
+## 🌟 Key Features Implemented
+
+### 1. Safari Compatibility
+- Added `requestIdleCallback` polyfill for Safari browsers
+- Improved React 19 compatibility
+
+### 2. HCAD Data Integration
+- Mock implementation based on actual HCAD record structure
+- Comprehensive data extraction from official records
+- Enhanced property information with official valuations
+
+### 3. Leads Management
+- Persistent storage using localStorage
+- Real-time updates across browser tabs
+- Complete CRUD operations for leads
+
+### 4. Enhanced UI/UX
+- Beautiful "Save to Leads" functionality
+- Detailed property information display
+- Mobile-responsive design
+- Real-time processing feedback
+
+## 🎨 UI Components
+
+- **UploadForm**: Drag-and-drop image upload
+- **PropertyTable**: Detailed property information display
+- **LeadsDashboard**: Leads management interface
+- **LoadingProgress**: Real-time processing feedback
+- **MobileModal**: Mobile-optimized result display
+
+## 📝 Example Usage
+
+```javascript
+// Upload and extract property data
+const formData = new FormData();
+formData.append('file', imageFile);
+
+const response = await fetch('/api/property-info', {
+  method: 'POST',
+  body: formData
+});
+
+const propertyData = await response.json();
 ```
 
-### Environment Variables for Production
-Make sure to set these in your deployment platform:
-- `OPENAI_API_KEY`
-- `PERPLEXITY_API_KEY`
-- `NEXT_PUBLIC_APP_URL`
+## 🔒 Security
 
-## 💡 Cost Considerations
+- API key stored in environment variables
+- Input validation for file uploads
+- CORS headers configured for API endpoints
+- File size limits (10MB maximum)
 
-### OpenAI Vision API
-- ~$0.01-0.03 per image processing
-- High accuracy (90-95%)
-- Fast processing (2-5 seconds)
+## 🚧 Future Enhancements
 
-### Perplexity API
-- ~$0.05-0.10 per enhanced search
-- Requires active subscription
-- Provides historical data enrichment
+- Real HCAD website scraping (currently uses mock data)
+- Database integration for persistent storage
+- User authentication and accounts
+- Batch processing for multiple properties
+- Advanced analytics and reporting
 
-## 🔒 Security & Privacy
+## 📄 License
 
-- API keys stored securely in environment variables
-- No user data stored permanently (unless saved to leads)
-- Images processed in real-time, not stored
-- HTTPS encryption for all API communications
-
-## 🐛 Troubleshooting
-
-### Common Issues
-
-1. **"Failed to parse body as FormData"**
-   - Ensure file is a valid image format
-   - Check file size (max 10MB)
-
-2. **"OpenAI API Error"**
-   - Verify API key is correct
-   - Check API quota/billing status
-
-3. **"Perplexity Enhancement Failed"**
-   - Requires active Perplexity subscription
-   - Will fall back to vision-only data
-
-### Debug Mode
-Set `NODE_ENV=development` to see detailed error messages and API responses.
-
-## 📈 Future Enhancements
-
-- [ ] Support for multiple property types
-- [ ] Batch processing for multiple screenshots
-- [ ] Integration with real estate CRM systems
-- [ ] Advanced analytics and reporting
-- [ ] Mobile app version
-- [ ] OCR fallback for non-AI processing
+This project is licensed under the MIT License.
 
 ## 🤝 Contributing
 
 1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+2. Create a feature branch
+3. Make your changes
+4. Submit a pull request
 
-## 📄 License
+## 📧 Support
 
-This project is licensed under the MIT License - see the LICENSE file for details.
-
-## 🆘 Support
-
-For support, email [your-email] or open an issue on GitHub.
+For questions or support, please contact the development team.
 
 ---
 
-**Built with ❤️ for real estate professionals who need fast, accurate property data extraction.**
+**Note**: The HCAD integration currently uses mock data based on the actual HCAD website structure. In production, this would be replaced with actual web scraping of the HCAD website at https://hcad.org/property-search/real-property/real-property-search-by-account-number.

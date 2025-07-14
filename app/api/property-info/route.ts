@@ -2,6 +2,35 @@ import { NextRequest, NextResponse } from 'next/server';
 import { extractPropertyData } from '../../../lib/vision-service';
 import { enhancePropertyData, mergePropertyData } from '../../../lib/perplexity-service';
 
+// Function to merge vision data with HCAD search results
+function mergeHCADData(visionData: any, hcadData: any) {
+  return {
+    ...visionData,
+    // Override with HCAD data where available
+    ownerName: hcadData.ownerName || visionData.ownerName,
+    propertyAddress: hcadData.propertyAddress || visionData.propertyAddress,
+    mailingAddress: hcadData.mailingAddress || visionData.mailingAddress,
+    totalValue: parseFloat(hcadData.totalValuation?.replace(/[^\d.]/g, '')) || visionData.totalValue,
+    landValue: parseFloat(hcadData.landValue?.replace(/[^\d.]/g, '')) || visionData.landValue,
+    improvementValue: parseFloat(hcadData.improvementValue?.replace(/[^\d.]/g, '')) || visionData.improvementValue,
+    propertyType: hcadData.stateClassCode || hcadData.propertyType || visionData.propertyType,
+    yearBuilt: hcadData.yearBuilt || visionData.yearBuilt,
+    taxYear: hcadData.taxYear || visionData.taxYear,
+    lotSize: hcadData.landArea || visionData.lotSize,
+    // Add HCAD-specific detailed data
+    legalDescription: hcadData.legalDescription || visionData.legalDescription,
+    neighborhood: hcadData.neighborhood || visionData.neighborhood,
+    stateClassCode: hcadData.stateClassCode,
+    landUseCode: hcadData.landUseCode,
+    totalLivingArea: hcadData.totalLivingArea,
+    marketArea: hcadData.marketArea,
+    // Add HCAD-specific data
+    hcadData: hcadData,
+    enhancedConfidence: hcadData.error ? 0 : 95, // Very high confidence for HCAD official data
+    enhancedBy: 'HCAD Official Records'
+  };
+}
+
 export const runtime = 'nodejs';
 export const maxDuration = 60; // Increased timeout for AI processing
 
@@ -46,23 +75,35 @@ export async function POST(req: NextRequest) {
     const visionData = await extractPropertyData(imageBase64);
     console.log('✅ Vision extraction completed with confidence:', visionData.confidence);
 
-         // Stage 2: Enhance data using Perplexity (if we have parcel ID)
+         // Stage 2: Enhance data using HCAD search (if we have parcel ID)
      let finalData = visionData;
-     if (visionData.parcelId && visionData.propertyAddress) {
-       console.log('🔍 Stage 2: Enhancing data with Perplexity search...');
+     if (visionData.parcelId) {
+       console.log('🔍 Stage 2: Enhancing data with HCAD search...');
        try {
-         const enhancedData = await enhancePropertyData(visionData.parcelId, visionData.propertyAddress);
-         if (enhancedData) {
-           finalData = mergePropertyData(visionData, enhancedData);
-           console.log('✅ Data enhancement completed');
+         const hcadResponse = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3001'}/api/hcad-search`, {
+           method: 'POST',
+           headers: {
+             'Content-Type': 'application/json',
+           },
+           body: JSON.stringify({ parcelId: visionData.parcelId })
+         });
+         
+         if (hcadResponse.ok) {
+           const hcadResult = await hcadResponse.json();
+           if (hcadResult.success && hcadResult.data) {
+             console.log('✅ HCAD search completed successfully');
+             finalData = mergeHCADData(visionData, hcadResult.data);
+           } else {
+             console.log('⚠️ HCAD search returned no data, using vision data only');
+           }
          } else {
-           console.log('⚠️ No enhanced data found, using vision data only');
+           console.log('⚠️ HCAD search failed, using vision data only');
          }
-       } catch (enhanceError) {
-         console.warn('⚠️ Enhancement failed (likely need credit card), using vision data only:', enhanceError);
+       } catch (hcadError) {
+         console.warn('⚠️ HCAD search failed, using vision data only:', hcadError);
        }
      } else {
-       console.log('⚠️ Missing parcel ID or address, skipping enhancement');
+       console.log('⚠️ Missing parcel ID, skipping HCAD enhancement');
      }
 
     // Format response to match existing frontend expectations
@@ -116,13 +157,20 @@ export async function POST(req: NextRequest) {
       salesHistory: finalData.salesHistory || [],
       propertyDetails: finalData.propertyDetails || {},
       
+      // HCAD specific data
+      hcadData: finalData.hcadData || null,
+      landArea: (finalData.hcadData && (finalData.hcadData as any).landArea) || finalData.lotSize || null,
+      totalValuation: (finalData.hcadData && (finalData.hcadData as any).totalValuation) || 
+                     (finalData.totalValue ? `$${finalData.totalValue.toLocaleString()}` : null),
+      
       // Confidence scores
       confidence: finalData.confidence,
       enhancedConfidence: finalData.enhancedConfidence,
+      enhancedBy: finalData.enhancedBy || null,
       
       // Processing metadata
       processedAt: new Date().toISOString(),
-      processingStages: finalData.enhancedConfidence ? ['vision', 'enhancement'] : ['vision']
+      processingStages: finalData.enhancedConfidence ? ['vision', 'hcad-search'] : ['vision']
     };
 
     console.log('🎉 Property extraction completed successfully');
