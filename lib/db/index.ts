@@ -62,7 +62,7 @@ export async function saveProperty(propertyData: PropertyData) {
         ${propertyData.garage}, ${propertyData.neighborhood}, ${propertyData.schoolDistrict},
         ${propertyData.parcelId}, ${propertyData.legalDescription}, ${propertyData.taxYear}, 
         ${propertyData.confidence}, ${propertyData.enhancedConfidence}, 
-        ${propertyData.processedAt ? new Date(propertyData.processedAt) : null},
+        ${propertyData.processedAt || null},
         ${propertyData.processingStages || []}, ${JSON.stringify(propertyData.rawData || {})}
       )
       ON CONFLICT (account_number) 
