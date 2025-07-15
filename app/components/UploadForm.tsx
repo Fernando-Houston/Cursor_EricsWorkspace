@@ -1,6 +1,7 @@
 import React, { useState, forwardRef, useImperativeHandle } from 'react';
 import Image from 'next/image';
 import LoadingProgress from './LoadingProgress';
+import { useN8nWebhook } from '../hooks/useN8nWebhook';
 
 interface PropertyInfo {
   propertyAddress: string;
@@ -27,6 +28,17 @@ const UploadForm = forwardRef<UploadFormRef, UploadFormProps>(({ onResult, onSta
   const [error, setError] = useState<string | null>(null);
   const [processingStage, setProcessingStage] = useState<'idle' | 'vision' | 'enhancement' | 'complete'>('idle');
   const [progress, setProgress] = useState(0);
+  const [useN8n, setUseN8n] = useState(false);
+  
+  const { analyzeProperty, isProcessing: n8nProcessing } = useN8nWebhook({
+    onSuccess: (data) => {
+      console.log('N8N webhook success:', data);
+      // Refresh the property list or update UI
+    },
+    onError: (error) => {
+      setError(error);
+    }
+  });
 
   // Update parent component with current status
   React.useEffect(() => {
@@ -101,10 +113,29 @@ const UploadForm = forwardRef<UploadFormRef, UploadFormProps>(({ onResult, onSta
         setProgress(45);
       }, 2000);
       
-      const res = await fetch('/api/property-info', {
-        method: 'POST',
-        body: formData,
-      });
+      let res;
+      
+      if (useN8n && process.env.NEXT_PUBLIC_N8N_WEBHOOK_URL) {
+        // Convert file to base64 for n8n webhook
+        const reader = new FileReader();
+        const base64 = await new Promise<string>((resolve, reject) => {
+          reader.onload = () => resolve(reader.result as string);
+          reader.onerror = reject;
+          reader.readAsDataURL(file);
+        });
+        
+        // Call n8n webhook instead
+        await analyzeProperty({ screenshot: base64 });
+        
+        // Fetch the latest data from our database
+        res = await fetch('/api/properties');
+      } else {
+        // Use existing property-info endpoint
+        res = await fetch('/api/property-info', {
+          method: 'POST',
+          body: formData,
+        });
+      }
       
       console.log('Response status:', res.status);
       
