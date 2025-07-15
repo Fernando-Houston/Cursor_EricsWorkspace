@@ -63,7 +63,7 @@ export async function saveProperty(propertyData: PropertyData) {
         ${propertyData.parcelId}, ${propertyData.legalDescription}, ${propertyData.taxYear}, 
         ${propertyData.confidence}, ${propertyData.enhancedConfidence}, 
         ${propertyData.processedAt || null},
-        ${propertyData.processingStages || []}, ${JSON.stringify(propertyData.rawData || {})}
+        ${JSON.stringify(propertyData.processingStages || [])}, ${JSON.stringify(propertyData.rawData || {})}
       )
       ON CONFLICT (account_number) 
       DO UPDATE SET
