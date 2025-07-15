@@ -2,7 +2,7 @@ import { useState } from 'react';
 
 interface N8nWebhookOptions {
   webhookUrl?: string;
-  onSuccess?: (data: any) => void;
+  onSuccess?: (data: Record<string, unknown>) => void;
   onError?: (error: string) => void;
 }
 
@@ -13,7 +13,7 @@ export function useN8nWebhook(options: N8nWebhookOptions = {}) {
   const analyzeProperty = async (data: {
     screenshot?: string;
     accountNumber?: string;
-    [key: string]: any;
+    [key: string]: string | undefined;
   }) => {
     setIsProcessing(true);
     setError(null);

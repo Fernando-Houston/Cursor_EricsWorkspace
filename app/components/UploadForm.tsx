@@ -28,9 +28,9 @@ const UploadForm = forwardRef<UploadFormRef, UploadFormProps>(({ onResult, onSta
   const [error, setError] = useState<string | null>(null);
   const [processingStage, setProcessingStage] = useState<'idle' | 'vision' | 'enhancement' | 'complete'>('idle');
   const [progress, setProgress] = useState(0);
-  const [useN8n, setUseN8n] = useState(false);
+  const [useN8n] = useState(false);
   
-  const { analyzeProperty, isProcessing: n8nProcessing } = useN8nWebhook({
+  const { analyzeProperty } = useN8nWebhook({
     onSuccess: (data) => {
       console.log('N8N webhook success:', data);
       // Refresh the property list or update UI

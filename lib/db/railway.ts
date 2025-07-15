@@ -44,7 +44,7 @@ export interface PropertyData {
   enhancedConfidence?: number;
   processedAt?: string;
   processingStages?: string[];
-  rawData?: any;
+  rawData?: Record<string, unknown>;
 }
 
 export async function saveProperty(propertyData: PropertyData) {
