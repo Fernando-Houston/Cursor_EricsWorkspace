@@ -138,6 +138,7 @@ export async function searchByOwner(ownerName: string): Promise<PropertySearchRe
 }
 
 // For Firestore (alternative)
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export async function searchFirestore(_accountNumber: string) {
   // If using Firestore instead of Cloud SQL
   // const { Firestore } = require('@google-cloud/firestore');
