@@ -3,7 +3,7 @@ import { searchByAccountNumber, searchByAddress, searchByOwner } from '@/lib/goo
 
 export async function POST(request: NextRequest) {
   try {
-    const { accountNumber, address, owner, searchType } = await request.json();
+    const { accountNumber, address, owner } = await request.json();
 
     // Validate input
     if (!accountNumber && !address && !owner) {

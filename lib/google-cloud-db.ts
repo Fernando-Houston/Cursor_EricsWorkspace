@@ -28,7 +28,7 @@ export interface PropertySearchResult {
   squareFootage?: number;
   lotSize?: string;
   propertyType?: string;
-  [key: string]: any;
+  [key: string]: string | number | boolean | null | undefined;
 }
 
 // Search by account number
@@ -138,10 +138,11 @@ export async function searchByOwner(ownerName: string): Promise<PropertySearchRe
 }
 
 // For Firestore (alternative)
-export async function searchFirestore(accountNumber: string) {
+export async function searchFirestore(_accountNumber: string) {
   // If using Firestore instead of Cloud SQL
   // const { Firestore } = require('@google-cloud/firestore');
   // const firestore = new Firestore();
-  // const doc = await firestore.collection('properties').doc(accountNumber).get();
+  // const doc = await firestore.collection('properties').doc(_accountNumber).get();
   // return doc.exists ? doc.data() : null;
+  return null;
 }
