@@ -5,7 +5,7 @@ import { Pool } from 'pg';
 
 // For Google Cloud SQL (PostgreSQL)
 const googleCloudPool = new Pool({
-  connectionString: process.env.GOOGLE_CLOUD_DATABASE_URL || 
+  connectionString: process.env.DATABASE_URL || process.env.GOOGLE_CLOUD_DATABASE_URL || 
     `postgresql://${process.env.GOOGLE_CLOUD_SQL_USER}:${process.env.GOOGLE_CLOUD_SQL_PASSWORD}@${process.env.GOOGLE_CLOUD_SQL_HOST}:${process.env.GOOGLE_CLOUD_SQL_PORT}/${process.env.GOOGLE_CLOUD_SQL_DATABASE}`,
   ssl: {
     rejectUnauthorized: false

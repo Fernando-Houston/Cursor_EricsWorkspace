@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { extractPropertyData, PropertyData } from '../../../lib/vision-service';
-// import { searchByAccountNumber } from '@/lib/google-cloud-db'; // TODO: Implement database search
+import { searchByAccountNumber } from '@/lib/google-cloud-db';
 
 // Types for the data structures
 interface HCADData {
@@ -21,6 +21,11 @@ interface HCADData {
   totalLivingArea?: string;
   marketArea?: string;
   error?: boolean;
+}
+
+interface EnhancedPropertyData extends PropertyData {
+  source?: string;
+  enhancedBy?: string;
 }
 
 // Function to merge vision data with HCAD search results
@@ -96,9 +101,46 @@ export async function POST(req: NextRequest) {
     const visionData = await extractPropertyData(imageBase64);
     console.log('✅ Vision extraction completed with confidence:', visionData.confidence);
 
-         // Stage 2: Enhance data using HCAD search (if we have parcel ID)
-     let finalData = visionData;
-     if (visionData.parcelId) {
+    // Check Google Cloud database first if we have a parcel ID
+    let finalData: EnhancedPropertyData = visionData;
+    if (visionData.parcelId && (process.env.DATABASE_URL || process.env.GOOGLE_CLOUD_DATABASE_URL || process.env.GOOGLE_CLOUD_SQL_HOST)) {
+      console.log('🔍 Checking Google Cloud HCAD database for parcel:', visionData.parcelId);
+      try {
+        const dbResult = await searchByAccountNumber(visionData.parcelId);
+        if (dbResult) {
+          console.log('✅ Found in Google Cloud database! Using database data.');
+          // Map database fields to our expected format
+          finalData = {
+            ...visionData,
+            propertyAddress: dbResult.propertyAddress || visionData.propertyAddress,
+            mailingAddress: dbResult.mailingAddress || visionData.mailingAddress,
+            ownerName: dbResult.owner || visionData.ownerName,
+            owner: dbResult.owner || visionData.ownerName,
+            totalValue: dbResult.totalValue || visionData.totalValue,
+            landValue: dbResult.landValue || visionData.landValue,
+            improvementValue: dbResult.improvementValue || visionData.improvementValue,
+            appraisal: dbResult.totalValue ? `$${dbResult.totalValue.toLocaleString()}` : 'Not Available',
+            yearBuilt: dbResult.yearBuilt || visionData.yearBuilt,
+            squareFootage: dbResult.squareFootage || visionData.squareFootage,
+            size: dbResult.squareFootage ? `${dbResult.squareFootage} sq ft` : visionData.size || 'Not Available',
+            propertyType: dbResult.propertyType || visionData.propertyType,
+            parcelId: visionData.parcelId,
+            confidence: 100, // Database data is 100% confident
+            enhancedBy: 'google-cloud-db',
+            source: 'google-cloud-db'
+          };
+          // Skip HCAD web search since we have database data
+          console.log('⏭️ Skipping HCAD web search - using database data');
+        } else {
+          console.log('❌ Not found in Google Cloud database, will try HCAD web search');
+        }
+      } catch (dbError) {
+        console.error('⚠️ Google Cloud database error:', dbError);
+      }
+    }
+
+    // Stage 2: Enhance data using HCAD search (if we have parcel ID and didn't find in database)
+    if (visionData.parcelId && !finalData.source) {
        console.log('🔍 Stage 2: Enhancing data with HCAD search...');
        try {
          const hcadResponse = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3001'}/api/hcad-search`, {
