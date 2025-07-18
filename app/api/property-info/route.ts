@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { extractPropertyData, PropertyData } from '../../../lib/vision-service';
+import { searchByAccountNumber } from '@/lib/google-cloud-db';
 
 // Types for the data structures
 interface HCADData {
