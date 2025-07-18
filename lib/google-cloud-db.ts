@@ -47,7 +47,11 @@ export async function searchByAccountNumber(accountNumber: string): Promise<Prop
         total_value as "totalValue",
         year_built as "yearBuilt",
         area_sqft as "squareFootage",
-        CONCAT(area_acres, ' acres') as "lotSize",
+        CASE 
+          WHEN area_sqft IS NOT NULL THEN CONCAT(area_sqft, ' sq ft')
+          WHEN area_acres IS NOT NULL THEN CONCAT(area_acres, ' acres')
+          ELSE NULL
+        END as "lotSize",
         property_type as "propertyType",
         city,
         state,
@@ -88,7 +92,11 @@ export async function searchByAddress(address: string): Promise<PropertySearchRe
         total_value as "totalValue",
         year_built as "yearBuilt",
         area_sqft as "squareFootage",
-        CONCAT(area_acres, ' acres') as "lotSize",
+        CASE 
+          WHEN area_sqft IS NOT NULL THEN CONCAT(area_sqft, ' sq ft')
+          WHEN area_acres IS NOT NULL THEN CONCAT(area_acres, ' acres')
+          ELSE NULL
+        END as "lotSize",
         property_type as "propertyType",
         city,
         state,

@@ -119,10 +119,15 @@ export async function POST(req: NextRequest) {
             totalValue: dbResult.totalValue || visionData.totalValue,
             landValue: dbResult.landValue || visionData.landValue,
             improvementValue: dbResult.improvementValue || visionData.improvementValue,
-            appraisal: dbResult.totalValue ? `$${dbResult.totalValue.toLocaleString()}` : 'Not Available',
+            appraisal: dbResult.totalValue ? `$${Number(dbResult.totalValue).toLocaleString()}` : 
+                      dbResult.assessedValue ? `$${Number(dbResult.assessedValue).toLocaleString()}` :
+                      'Not Available',
             yearBuilt: dbResult.yearBuilt || visionData.yearBuilt,
             squareFootage: dbResult.squareFootage || visionData.squareFootage,
-            size: dbResult.squareFootage ? `${dbResult.squareFootage} sq ft` : visionData.size || 'Not Available',
+            size: dbResult.squareFootage ? `${dbResult.squareFootage} sq ft` : 
+                  dbResult.lotSize || 
+                  visionData.size || 
+                  'Not Available',
             propertyType: dbResult.propertyType || visionData.propertyType,
             parcelId: visionData.parcelId,
             confidence: 100, // Database data is 100% confident
