@@ -128,7 +128,7 @@ export default function PropertyDetailsPage() {
     );
   }
 
-  const pricePerSqFt = property.square_feet ? property.total_value / property.square_feet : 0;
+  const pricePerSqFt = property.square_feet && property.total_value ? property.total_value / property.square_feet : 0;
   const improvementRatio = property.land_value ? 
     ((property.improvement_value || 0) / property.total_value * 100).toFixed(1) : 0;
 
@@ -165,7 +165,7 @@ export default function PropertyDetailsPage() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-gray-500">Total Value</p>
-                  <p className="text-2xl font-bold">${property.total_value.toLocaleString()}</p>
+                  <p className="text-2xl font-bold">${property.total_value ? property.total_value.toLocaleString() : 'N/A'}</p>
                 </div>
                 <DollarSign className="h-8 w-8 text-green-500" />
               </div>
@@ -189,7 +189,7 @@ export default function PropertyDetailsPage() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-gray-500">Size</p>
-                  <p className="text-2xl font-bold">{property.area_acres.toFixed(2)} acres</p>
+                  <p className="text-2xl font-bold">{property.area_acres ? property.area_acres.toFixed(2) : '0'} acres</p>
                   {property.square_feet && (
                     <p className="text-xs text-gray-500">{property.square_feet.toLocaleString()} sqft</p>
                   )}
@@ -204,7 +204,7 @@ export default function PropertyDetailsPage() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-gray-500">Price/SqFt</p>
-                  <p className="text-2xl font-bold">${pricePerSqFt.toFixed(0)}</p>
+                  <p className="text-2xl font-bold">{pricePerSqFt ? `$${pricePerSqFt.toFixed(0)}` : 'N/A'}</p>
                   {property.market_analysis && (
                     <p className={`text-xs ${
                       property.market_analysis.trend === 'up' ? 'text-green-600' : 
@@ -331,7 +331,7 @@ export default function PropertyDetailsPage() {
                     </div>
                     <div className="border-t pt-4 flex justify-between items-center">
                       <span className="font-medium">Total Appraised Value</span>
-                      <span className="text-xl font-bold">${property.total_value.toLocaleString()}</span>
+                      <span className="text-xl font-bold">${property.total_value ? property.total_value.toLocaleString() : 'N/A'}</span>
                     </div>
                     <div className="pt-4">
                       <p className="text-sm text-gray-500 mb-2">Improvement Ratio</p>
@@ -362,14 +362,15 @@ export default function PropertyDetailsPage() {
                       <p className="text-sm text-gray-500 mb-2">Estimated Market Value</p>
                       <div className="flex items-end gap-4">
                         <p className="text-3xl font-bold">
-                          ${property.market_analysis.estimated_value.toLocaleString()}
+                          ${property.market_analysis.estimated_value ? property.market_analysis.estimated_value.toLocaleString() : 'N/A'}
                         </p>
                         <p className={`text-sm ${
                           property.market_analysis.estimated_value > property.total_value 
                             ? 'text-green-600' : 'text-red-600'
                         }`}>
                           {property.market_analysis.estimated_value > property.total_value ? '+' : ''}
-                          {((property.market_analysis.estimated_value - property.total_value) / property.total_value * 100).toFixed(1)}%
+                          {property.market_analysis.estimated_value && property.total_value ? 
+                            ((property.market_analysis.estimated_value - property.total_value) / property.total_value * 100).toFixed(1) : '0'}%
                         </p>
                       </div>
                     </div>
@@ -436,7 +437,8 @@ export default function PropertyDetailsPage() {
                       ${property.rental_estimate.toLocaleString()}
                     </p>
                     <p className="text-xs text-purple-600">
-                      {((property.rental_estimate * 12) / property.total_value * 100).toFixed(1)}% cap rate
+                      {property.rental_estimate && property.total_value ? 
+                        ((property.rental_estimate * 12) / property.total_value * 100).toFixed(1) : '0'}% cap rate
                     </p>
                   </div>
                 )}

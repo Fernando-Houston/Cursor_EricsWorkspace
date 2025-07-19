@@ -38,7 +38,6 @@ export async function GET(
         zip,
         centroid_lat::numeric as latitude,
         centroid_lon::numeric as longitude,
-        legal_description,
         city,
         extra_data
       FROM properties 
