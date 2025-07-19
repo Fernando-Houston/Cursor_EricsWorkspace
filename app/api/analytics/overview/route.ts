@@ -14,8 +14,8 @@ export async function GET() {
         SELECT 
           COUNT(*) as total_properties,
           COUNT(total_value) as properties_with_values,
-          SUM(total_value) as total_portfolio_value,
-          AVG(total_value) as avg_property_value,
+          COALESCE(SUM(total_value), 0) as total_portfolio_value,
+          COALESCE(AVG(total_value), 0) as avg_property_value,
           COUNT(DISTINCT owner_name) as unique_owners,
           COUNT(CASE WHEN property_address != mail_address THEN 1 END) as non_owner_occupied
         FROM properties
@@ -89,14 +89,42 @@ export async function GET() {
         ) as data
     `);
 
-    return NextResponse.json(stats.rows[0].data);
+    const data = stats.rows[0]?.data || {
+      stats: {
+        total_properties: 0,
+        properties_with_values: 0,
+        total_portfolio_value: 0,
+        avg_property_value: 0,
+        unique_owners: 0,
+        non_owner_occupied: 0
+      },
+      top_owners: [],
+      property_types: [],
+      zip_analysis: [],
+      value_distribution: []
+    };
+    
+    return NextResponse.json(data);
     
   } catch (error) {
     console.error('Analytics error:', error);
-    return NextResponse.json(
-      { error: 'Failed to fetch analytics' },
-      { status: 500 }
-    );
+    
+    // Return a valid response structure even on error
+    return NextResponse.json({
+      stats: {
+        total_properties: 0,
+        properties_with_values: 0,
+        total_portfolio_value: 0,
+        avg_property_value: 0,
+        unique_owners: 0,
+        non_owner_occupied: 0
+      },
+      top_owners: [],
+      property_types: [],
+      zip_analysis: [],
+      value_distribution: [],
+      error: error instanceof Error ? error.message : 'Failed to fetch analytics'
+    });
   }
 }
 
