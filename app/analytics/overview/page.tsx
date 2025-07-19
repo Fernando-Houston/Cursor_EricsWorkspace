@@ -62,12 +62,20 @@ export default function AnalyticsOverview() {
 
   const fetchAnalytics = async () => {
     try {
-      // Use static endpoint for instant loading
-      const response = await fetch('/api/analytics/static');
+      // Try Railway first, fallback to static if needed
+      const response = await fetch('/api/analytics/railway');
       const result = await response.json();
       setData(result);
     } catch (error) {
       console.error('Failed to fetch analytics:', error);
+      // Fallback to static data
+      try {
+        const staticResponse = await fetch('/api/analytics/static');
+        const staticResult = await staticResponse.json();
+        setData(staticResult);
+      } catch (staticError) {
+        console.error('Static fallback also failed:', staticError);
+      }
     } finally {
       setLoading(false);
     }
@@ -78,13 +86,26 @@ export default function AnalyticsOverview() {
     
     setSearching(true);
     try {
-      const response = await fetch('/api/analytics/search-dynamic', {
+      // Try Railway first for real data
+      const response = await fetch('/api/analytics/search-railway', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ searchType, searchValue })
       });
       const result = await response.json();
-      setSearchResults(result.results || []);
+      
+      if (result.error && !result.results?.length) {
+        // Fallback to dynamic search if Railway fails
+        const fallbackResponse = await fetch('/api/analytics/search-dynamic', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ searchType, searchValue })
+        });
+        const fallbackResult = await fallbackResponse.json();
+        setSearchResults(fallbackResult.results || []);
+      } else {
+        setSearchResults(result.results || []);
+      }
     } catch (error) {
       console.error('Search failed:', error);
     } finally {
