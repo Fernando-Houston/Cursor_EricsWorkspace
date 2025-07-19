@@ -210,16 +210,21 @@ const propertyDatabase: Record<string, PropertyRecord> = {
   }
 };
 
+interface RouteContext {
+  params: Promise<{ id: string }>;
+}
+
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: RouteContext
 ) {
   try {
-    const property = propertyDatabase[params.id];
+    const { id } = await context.params;
+    const property = propertyDatabase[id];
     
     if (!property) {
       // Try to generate a property based on the ID pattern
-      const generatedProperty = generatePropertyFromId(params.id);
+      const generatedProperty = generatePropertyFromId(id);
       if (generatedProperty) {
         return NextResponse.json(generatedProperty);
       }
