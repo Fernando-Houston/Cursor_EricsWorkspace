@@ -15,8 +15,19 @@ const getConnectionString = () => {
   // Then try building from individual parts
   if (process.env.GOOGLE_CLOUD_SQL_HOST) {
     console.log('Building connection from individual Google Cloud SQL variables');
-    const password = encodeURIComponent(process.env.GOOGLE_CLOUD_SQL_PASSWORD || '');
-    return `postgresql://${process.env.GOOGLE_CLOUD_SQL_USER}:${password}@${process.env.GOOGLE_CLOUD_SQL_HOST}:${process.env.GOOGLE_CLOUD_SQL_PORT}/${process.env.GOOGLE_CLOUD_SQL_DATABASE}`;
+    // Password is already URL encoded in the env var: JN#Fly/{;>p.bXVL
+    const password = process.env.GOOGLE_CLOUD_SQL_PASSWORD || '';
+    // Manually encode special characters
+    const encodedPassword = password
+      .replace(/#/g, '%23')
+      .replace(/\//g, '%2F')
+      .replace(/{/g, '%7B')
+      .replace(/;/g, '%3B')
+      .replace(/>/g, '%3E')
+      .replace(/\./g, '.');
+    const connString = `postgresql://${process.env.GOOGLE_CLOUD_SQL_USER}:${encodedPassword}@${process.env.GOOGLE_CLOUD_SQL_HOST}:${process.env.GOOGLE_CLOUD_SQL_PORT}/${process.env.GOOGLE_CLOUD_SQL_DATABASE}`;
+    console.log('Built connection string (password masked):', connString.replace(/:.*@/, ':***@'));
+    return connString;
   }
   
   // Don't fall back to DATABASE_URL as it might be pointing to wrong database
