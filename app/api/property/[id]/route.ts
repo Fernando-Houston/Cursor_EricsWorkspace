@@ -8,7 +8,46 @@ interface PropertyRecord {
   owner_name: string;
   mail_address: string;
   total_value: number;
-  [key: string]: any;
+  legal_description?: string;
+  ownership_history?: Array<{
+    owner: string;
+    date: string;
+    price?: number;
+  }>;
+  property_type: string;
+  year_built?: number;
+  area_acres: number;
+  square_feet?: number;
+  bedrooms?: number;
+  bathrooms?: number;
+  stories?: number;
+  construction_type?: string;
+  foundation_type?: string;
+  zip: string;
+  subdivision?: string;
+  city?: string;
+  school_district?: string;
+  neighborhood?: string;
+  latitude?: number;
+  longitude?: number;
+  land_value?: number;
+  improvement_value?: number;
+  tax_amount?: number;
+  exemptions?: string[];
+  market_analysis?: {
+    estimated_value: number;
+    confidence: number;
+    trend: 'up' | 'down' | 'stable';
+    growth_rate: number;
+  };
+  comparables?: Array<{
+    address: string;
+    distance: number;
+    value: number;
+    price_per_sqft: number;
+  }>;
+  investment_score?: number;
+  rental_estimate?: number;
 }
 
 const propertyDatabase: Record<string, PropertyRecord> = {
