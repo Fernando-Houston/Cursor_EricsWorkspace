@@ -146,28 +146,42 @@ export async function GET(
   }
 }
 
-function calculateInvestmentScore(property: any): number {
+function calculateInvestmentScore(property: {
+  property_address?: string;
+  mail_address?: string;
+  zip?: string;
+  total_value?: number | string;
+  area_acres?: number | string;
+}): number {
   let score = 50;
   
   // Non-owner occupied properties are investment opportunities
   if (property.property_address !== property.mail_address) score += 20;
   
   // Properties in growing areas
-  if (['77008', '77007', '77009'].includes(property.zip)) score += 15;
+  if (property.zip && ['77008', '77007', '77009'].includes(property.zip)) score += 15;
   
   // Good value properties
-  if (property.total_value && property.total_value < 500000) score += 10;
+  const totalValue = typeof property.total_value === 'string' ? parseFloat(property.total_value) : property.total_value;
+  if (totalValue && totalValue < 500000) score += 10;
   
   // Larger properties
-  if (property.area_acres && property.area_acres > 0.5) score += 5;
+  const acres = typeof property.area_acres === 'string' ? parseFloat(property.area_acres) : property.area_acres;
+  if (acres && acres > 0.5) score += 5;
   
   return Math.min(score, 100);
 }
 
-function estimateRent(property: any): number {
+function estimateRent(property: {
+  total_value?: number | string;
+  property_type?: string;
+}): number {
   if (!property.total_value) return 0;
+  
+  const totalValue = typeof property.total_value === 'string' ? parseFloat(property.total_value) : property.total_value;
+  if (!totalValue) return 0;
   
   // Simple rent estimation: 0.7-1% of property value per month
   const rentRatio = property.property_type === 'COMMERCIAL' ? 0.01 : 0.007;
-  return Math.round(property.total_value * rentRatio);
+  return Math.round(totalValue * rentRatio);
 }
