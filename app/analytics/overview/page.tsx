@@ -62,8 +62,8 @@ export default function AnalyticsOverview() {
 
   const fetchAnalytics = async () => {
     try {
-      // Temporarily use local endpoint while Railway connection is fixed
-      const response = await fetch('/api/analytics/local');
+      // Use direct endpoint for better connection handling
+      const response = await fetch('/api/analytics/direct');
       const result = await response.json();
       setData(result);
     } catch (error) {
