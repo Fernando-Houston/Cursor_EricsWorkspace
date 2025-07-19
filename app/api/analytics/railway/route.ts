@@ -97,12 +97,42 @@ export async function GET() {
       `)
     ]);
     
+    // Ensure all numeric values are properly converted
+    const stats = statsResult.rows[0];
+    const formattedStats = {
+      total_properties: parseInt(stats.total_properties) || 0,
+      properties_with_values: parseInt(stats.properties_with_values) || 0,
+      total_portfolio_value: parseFloat(stats.total_portfolio_value) || 0,
+      avg_property_value: parseFloat(stats.avg_property_value) || 0,
+      unique_owners: parseInt(stats.unique_owners) || 0,
+      non_owner_occupied: parseInt(stats.non_owner_occupied) || 0
+    };
+    
     return NextResponse.json({
-      stats: statsResult.rows[0],
-      top_owners: ownersResult.rows,
-      property_types: typesResult.rows,
-      zip_analysis: zipsResult.rows,
-      value_distribution: distributionResult.rows,
+      stats: formattedStats,
+      top_owners: ownersResult.rows.map(row => ({
+        owner_name: row.owner_name,
+        property_count: parseInt(row.property_count) || 0,
+        portfolio_value: parseFloat(row.portfolio_value) || 0,
+        total_acres: parseFloat(row.total_acres) || 0
+      })),
+      property_types: typesResult.rows.map(row => ({
+        property_type: row.property_type,
+        count: parseInt(row.count) || 0,
+        avg_value: parseFloat(row.avg_value) || 0,
+        total_value: parseFloat(row.total_value) || 0
+      })),
+      zip_analysis: zipsResult.rows.map(row => ({
+        zip: row.zip,
+        property_count: parseInt(row.property_count) || 0,
+        avg_value: parseFloat(row.avg_value) || 0,
+        investor_owned: parseInt(row.investor_owned) || 0,
+        total_acres: parseFloat(row.total_acres) || 0
+      })),
+      value_distribution: distributionResult.rows.map(row => ({
+        value_range: row.value_range,
+        count: parseInt(row.count) || 0
+      })),
       source: 'railway-live'
     });
     
