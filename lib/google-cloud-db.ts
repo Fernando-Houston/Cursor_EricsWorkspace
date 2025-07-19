@@ -1,12 +1,17 @@
-// Google Cloud Database Connection
-// Supports Cloud SQL (PostgreSQL/MySQL) or Firestore
+// HCAD Database Connection
+// Now using Railway database which has better data (mailing addresses)
 
 import { Pool } from 'pg';
 
-// For Google Cloud SQL (PostgreSQL)
-// Build connection string from individual parts to avoid conflicts with Vercel's DATABASE_URL
+// Database connection - Railway has the complete HCAD data
 const getConnectionString = () => {
-  // First try the explicit Google Cloud database URL
+  // First try Railway database (has mailing addresses)
+  if (process.env.RAILWAY_HCAD_DATABASE_URL) {
+    console.log('Using RAILWAY_HCAD_DATABASE_URL');
+    return process.env.RAILWAY_HCAD_DATABASE_URL;
+  }
+  
+  // Then try the explicit Google Cloud database URL
   if (process.env.GOOGLE_CLOUD_DATABASE_URL && process.env.GOOGLE_CLOUD_DATABASE_URL.trim() !== '') {
     console.log('Using GOOGLE_CLOUD_DATABASE_URL:', process.env.GOOGLE_CLOUD_DATABASE_URL.replace(/:.*@/, ':***@'));
     return process.env.GOOGLE_CLOUD_DATABASE_URL;
@@ -34,7 +39,7 @@ const getConnectionString = () => {
   }
   
   // Don't fall back to DATABASE_URL as it might be pointing to wrong database
-  throw new Error('Google Cloud database configuration not found');
+  throw new Error('HCAD database configuration not found');
 };
 
 const googleCloudPool = new Pool({
@@ -72,7 +77,7 @@ export async function searchByAccountNumber(accountNumber: string): Promise<Prop
         account_number as "accountNumber",
         owner_name as "owner",
         property_address as "propertyAddress",
-        property_address as "mailingAddress", -- mail_address is always NULL in this database
+        COALESCE(mail_address, property_address) as "mailingAddress",
         total_value as "appraisedValue",
         land_value as "landValue",
         building_value as "improvementValue",
@@ -122,7 +127,7 @@ export async function searchByAddress(address: string): Promise<PropertySearchRe
         account_number as "accountNumber",
         owner_name as "owner",
         property_address as "propertyAddress",
-        property_address as "mailingAddress", -- mail_address is always NULL in this database
+        COALESCE(mail_address, property_address) as "mailingAddress",
         total_value as "appraisedValue",
         land_value as "landValue",
         building_value as "improvementValue",
