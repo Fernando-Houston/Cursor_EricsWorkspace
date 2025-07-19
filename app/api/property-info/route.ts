@@ -205,16 +205,18 @@ export async function POST(req: NextRequest) {
       landValue: finalData.landValue || null,
       improvementValue: finalData.improvementValue || null,
       totalValue: finalData.totalValue || null,
-      appraisal: finalData.totalValue ? `$${finalData.totalValue.toLocaleString()}` : 
+      appraisal: finalData.appraisal || 
+                 (finalData.totalValue ? `$${finalData.totalValue.toLocaleString()}` : 
                  finalData.landValue ? `$${finalData.landValue.toLocaleString()}` : 
-                 'Not Available',
+                 'Not Available'),
       
       // Property details
       propertyType: finalData.propertyType || null,
       yearBuilt: finalData.yearBuilt || null,
       squareFootage: finalData.squareFootage || null,
-      size: finalData.squareFootage ? `${finalData.squareFootage.toLocaleString()} sqft` : 
-            finalData.lotSize ? finalData.lotSize : 'Not Available',
+      size: finalData.size || 
+            (finalData.squareFootage ? `${finalData.squareFootage.toLocaleString()} sqft` : 
+            finalData.lotSize ? finalData.lotSize : 'Not Available'),
       lotSize: finalData.lotSize || null,
       acreage: finalData.acreage || null,
       
@@ -260,6 +262,12 @@ export async function POST(req: NextRequest) {
     };
 
     console.log('🎉 Property extraction completed successfully');
+    console.log('📊 Final Data Object:');
+    console.log('- finalData.size:', finalData.size);
+    console.log('- finalData.lotSize:', finalData.lotSize);
+    console.log('- finalData.squareFootage:', finalData.squareFootage);
+    console.log('- finalData.appraisal:', finalData.appraisal);
+    console.log('- finalData.totalValue:', finalData.totalValue);
     console.log('📊 Final response data:');
     console.log('- Address:', response.propertyAddress);
     console.log('- Owner:', response.owner);
