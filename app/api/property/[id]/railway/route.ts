@@ -30,8 +30,9 @@ export async function GET(
         mail_address,
         total_value::numeric as total_value,
         land_value::numeric as land_value,
-        improvement_value::numeric as improvement_value,
+        building_value::numeric as improvement_value,
         area_acres::numeric as area_acres,
+        area_sqft::numeric as area_sqft,
         property_type,
         year_built,
         zip,
@@ -39,11 +40,7 @@ export async function GET(
         centroid_lon::numeric as longitude,
         legal_description,
         city,
-        neighborhood,
-        school_district,
-        subdivision,
-        num_buildings,
-        building_style_code
+        extra_data
       FROM properties 
       WHERE account_number = $1`,
       [id]
@@ -68,7 +65,9 @@ export async function GET(
     
     const property = result.rows[0];
     
-    // Convert numeric values
+    // Convert numeric values and extract extra data
+    const extraData = property.extra_data || {};
+    
     const enhancedProperty = {
       ...property,
       total_value: property.total_value ? parseFloat(property.total_value) : null,
@@ -78,23 +77,33 @@ export async function GET(
       latitude: property.latitude ? parseFloat(property.latitude) : null,
       longitude: property.longitude ? parseFloat(property.longitude) : null,
       
-      // Calculate square feet if we have acres
-      square_feet: property.area_acres ? Math.round(parseFloat(property.area_acres) * 43560) : null,
+      // Extract from extra_data if available
+      neighborhood: extraData.neighborhood || null,
+      school_district: extraData.school_district || null,
+      subdivision: extraData.subdivision || null,
+      
+      // Calculate square feet - use area_sqft if available, otherwise calculate from acres
+      square_feet: property.area_sqft ? parseFloat(property.area_sqft) : 
+                   property.area_acres ? Math.round(parseFloat(property.area_acres) * 43560) : null,
       
       // Smart features
       is_owner_occupied: property.property_address === property.mail_address,
       
-      // Investment analysis
-      investment_score: calculateInvestmentScore(property),
+      // Investment analysis - use existing scores if available
+      investment_score: property.investment_score || calculateInvestmentScore(property),
       rental_estimate: estimateRent(property),
       
       // Market analysis
       market_analysis: {
-        estimated_value: property.total_value ? parseFloat(property.total_value) * 1.05 : null,
-        confidence: 85,
+        estimated_value: property.estimated_value ? parseFloat(property.estimated_value) : 
+                        property.total_value ? parseFloat(property.total_value) * 1.05 : null,
+        confidence: property.confidence_score || 85,
         trend: 'up',
         growth_rate: 5.2
-      }
+      },
+      
+      // Remove extra_data from response
+      extra_data: undefined
     };
     
     // Get comparable properties
