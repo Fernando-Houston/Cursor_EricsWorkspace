@@ -111,6 +111,7 @@ export default function PropertyDetailsPage() {
   const [property, setProperty] = useState<PropertyDetails | null>(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('overview');
+  const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved'>('idle');
 
   useEffect(() => {
     fetchPropertyDetails();
@@ -134,6 +135,63 @@ export default function PropertyDetailsPage() {
       console.error('Failed to fetch property details:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleSaveToLeads = () => {
+    if (!property) return;
+    
+    setSaveStatus('saving');
+    
+    try {
+      // Get existing leads from localStorage
+      const existingLeads = localStorage.getItem('hcad-leads');
+      const leads = existingLeads ? JSON.parse(existingLeads) : [];
+      
+      // Check if this property is already saved
+      const existingIndex = leads.findIndex((lead: any) => lead.parcelId === property.account_number);
+      
+      if (existingIndex === -1) {
+        // Format the property data to match the leads structure
+        const leadData = {
+          id: `lead-${Date.now()}`,
+          propertyAddress: property.property_address || 'N/A',
+          mailingAddress: property.full_mail_address || property.mail_address || property.property_address || 'N/A',
+          appraisal: property.total_value ? `$${property.total_value.toLocaleString()}` : 'N/A',
+          owner: property.owner_name || 'N/A',
+          size: property.area_sqft ? `${Math.round(property.area_sqft).toLocaleString()} sqft` : 
+                property.area_acres ? `${property.area_acres.toFixed(2)} acres` : 'N/A',
+          parcelId: property.account_number || 'N/A',
+          dateAdded: new Date().toISOString(),
+          propertyType: property.property_type || 'N/A',
+          yearBuilt: property.year_built || null,
+          source: 'property-search'
+        };
+        
+        // Add to beginning of array (most recent first)
+        leads.unshift(leadData);
+        
+        // Save back to localStorage
+        localStorage.setItem('hcad-leads', JSON.stringify(leads));
+        
+        // Trigger storage event for other tabs/components
+        window.dispatchEvent(new StorageEvent('storage', {
+          key: 'hcad-leads',
+          newValue: JSON.stringify(leads),
+          oldValue: existingLeads
+        }));
+      }
+      
+      setSaveStatus('saved');
+      
+      // Reset status after 2 seconds
+      setTimeout(() => {
+        setSaveStatus('idle');
+      }, 2000);
+      
+    } catch (error) {
+      console.error('Error saving to leads:', error);
+      setSaveStatus('idle');
     }
   };
 
@@ -185,8 +243,19 @@ export default function PropertyDetailsPage() {
               >
                 Back to Search
               </Link>
-              <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
-                Save to Leads
+              <button 
+                onClick={handleSaveToLeads}
+                disabled={saveStatus !== 'idle'}
+                className={`px-4 py-2 rounded-lg transition-colors ${
+                  saveStatus === 'saved' 
+                    ? 'bg-green-600 text-white' 
+                    : saveStatus === 'saving'
+                    ? 'bg-gray-400 text-white cursor-not-allowed'
+                    : 'bg-blue-600 text-white hover:bg-blue-700'
+                }`}
+              >
+                {saveStatus === 'saved' ? '✓ Saved to Leads' : 
+                 saveStatus === 'saving' ? 'Saving...' : 'Save to Leads'}
               </button>
             </div>
           </div>
