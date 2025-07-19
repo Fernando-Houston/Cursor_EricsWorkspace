@@ -3,7 +3,7 @@ import { NextResponse } from 'next/server';
 export async function GET() {
   try {
     // Test with a simple fetch to avoid connection pooling issues
-    const { Client } = require('pg');
+    const { Client } = await import('pg');
     
     // Try the original Harris County database
     const client = new Client({
@@ -32,7 +32,7 @@ export async function GET() {
     
     // If original fails, try the GOAT database
     try {
-      const { Client } = require('pg');
+      const { Client } = await import('pg');
       const client2 = new Client({
         connectionString: 'postgresql://postgres:wkmQNTkDRqnFJGBkPvRFCwiClgEbCRKl@tramway.proxy.rlwy.net:31762/railway',
         ssl: { rejectUnauthorized: false },
@@ -46,7 +46,7 @@ export async function GET() {
       return NextResponse.json({
         success: true,
         message: 'Connected to GOAT database instead',
-        tables: result2.rows.map((r: any) => r.table_name),
+        tables: result2.rows.map((r: { table_name: string }) => r.table_name),
         note: 'Original database timed out, but GOAT database is accessible'
       });
       
