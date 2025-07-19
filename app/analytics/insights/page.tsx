@@ -30,8 +30,8 @@ interface MarketInsights {
   }>;
   predictions: {
     total: number;
-    highConfidence: number;
-    avgConfidence: number;
+    high_confidence: number;
+    avg_confidence: number;
   };
 }
 
@@ -118,11 +118,11 @@ export default function MarketInsights() {
                 <p className="text-purple-100">Total Predictions</p>
               </div>
               <div>
-                <p className="text-3xl font-bold">{insights?.predictions.highConfidence.toLocaleString() || 0}</p>
+                <p className="text-3xl font-bold">{insights?.predictions.high_confidence?.toLocaleString() || 0}</p>
                 <p className="text-purple-100">High Confidence (&gt;70%)</p>
               </div>
               <div>
-                <p className="text-3xl font-bold">{insights?.predictions.avgConfidence.toFixed(1) || 0}%</p>
+                <p className="text-3xl font-bold">{insights?.predictions.avg_confidence?.toFixed(1) || 0}%</p>
                 <p className="text-purple-100">Average Confidence</p>
               </div>
             </div>
