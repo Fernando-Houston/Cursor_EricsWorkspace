@@ -78,7 +78,7 @@ export default function AnalyticsOverview() {
     
     setSearching(true);
     try {
-      const response = await fetch('/api/analytics/search-static', {
+      const response = await fetch('/api/analytics/search-dynamic', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ searchType, searchValue })
@@ -233,7 +233,7 @@ export default function AnalyticsOverview() {
               </button>
             </div>
 
-            {searchResults.length > 0 && (
+            {searchResults.length > 0 ? (
               <div className="max-h-96 overflow-y-auto">
                 <table className="w-full text-sm">
                   <thead className="sticky top-0 bg-gray-100 dark:bg-gray-800">
@@ -270,7 +270,17 @@ export default function AnalyticsOverview() {
                   </tbody>
                 </table>
               </div>
-            )}
+            ) : searchValue && !searching ? (
+              <div className="text-center py-8 text-gray-500">
+                <p className="mb-2">No properties found for "{searchValue}"</p>
+                <p className="text-sm">Try searching for:</p>
+                <div className="mt-2 text-sm space-y-1">
+                  <p>• Address: "Main St", "Heights Blvd", "Westheimer"</p>
+                  <p>• ZIP: "77002", "77019", "77008"</p>
+                  <p>• Owner: "Invitation Homes", "Holdings", "Trust"</p>
+                </div>
+              </div>
+            ) : null}
           </CardContent>
         </Card>
 
