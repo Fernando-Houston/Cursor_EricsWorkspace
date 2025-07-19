@@ -46,7 +46,7 @@ export default function MarketInsights() {
 
   const fetchInsights = async () => {
     try {
-      const response = await fetch('/api/analytics/insights');
+      const response = await fetch('/api/analytics/insights-static');
       const data = await response.json();
       setInsights(data);
     } catch (error) {

@@ -78,7 +78,7 @@ export default function AnalyticsOverview() {
     
     setSearching(true);
     try {
-      const response = await fetch('/api/analytics/local', {
+      const response = await fetch('/api/analytics/search-static', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ searchType, searchValue })
