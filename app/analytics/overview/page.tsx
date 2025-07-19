@@ -62,7 +62,8 @@ export default function AnalyticsOverview() {
 
   const fetchAnalytics = async () => {
     try {
-      const response = await fetch('/api/analytics/overview');
+      // Temporarily use local endpoint while Railway connection is fixed
+      const response = await fetch('/api/analytics/local');
       const result = await response.json();
       setData(result);
     } catch (error) {
@@ -77,7 +78,7 @@ export default function AnalyticsOverview() {
     
     setSearching(true);
     try {
-      const response = await fetch('/api/analytics/overview', {
+      const response = await fetch('/api/analytics/local', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ searchType, searchValue })
