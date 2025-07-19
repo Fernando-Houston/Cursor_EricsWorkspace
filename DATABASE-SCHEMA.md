@@ -14,10 +14,10 @@ Total Records: 1,780,240 properties
 | **city** | Property city | 'HOUSTON' | |
 | **state** | Property state | 'TX' | |
 | **zip** | Property ZIP code | '77009' | |
-| **mail_address** | Mailing address | '5412 IRVINGTON BLVD' | Often same as property address |
-| **mail_city** | Mailing city | 'HOUSTON' | |
-| **mail_state** | Mailing state | 'TX' | |
-| **mail_zip** | Mailing ZIP | '77009' | |
+| **mail_address** | Mailing address | NULL | ⚠️ Always NULL in this database |
+| **mail_city** | Mailing city | NULL | ⚠️ Always NULL in this database |
+| **mail_state** | Mailing state | NULL | ⚠️ Always NULL in this database |
+| **mail_zip** | Mailing ZIP | NULL | ⚠️ Always NULL in this database |
 | **property_class** | Property classification code | NULL for many | |
 | **property_class_desc** | Property class description | NULL for many | |
 | **land_value** | Land value in dollars | NULL for most GIS properties | Numeric value |

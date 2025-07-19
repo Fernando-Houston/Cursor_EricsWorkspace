@@ -72,7 +72,7 @@ export async function searchByAccountNumber(accountNumber: string): Promise<Prop
         account_number as "accountNumber",
         owner_name as "owner",
         property_address as "propertyAddress",
-        COALESCE(mail_address, property_address) as "mailingAddress",
+        property_address as "mailingAddress", -- mail_address is always NULL in this database
         total_value as "appraisedValue",
         land_value as "landValue",
         building_value as "improvementValue",
@@ -122,7 +122,7 @@ export async function searchByAddress(address: string): Promise<PropertySearchRe
         account_number as "accountNumber",
         owner_name as "owner",
         property_address as "propertyAddress",
-        COALESCE(mail_address, property_address) as "mailingAddress",
+        property_address as "mailingAddress", -- mail_address is always NULL in this database
         total_value as "appraisedValue",
         land_value as "landValue",
         building_value as "improvementValue",
