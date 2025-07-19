@@ -2,7 +2,16 @@ import { NextResponse } from 'next/server';
 import { NextRequest } from 'next/server';
 
 // Enhanced property database with smart features
-const propertyDatabase: Record<string, any> = {
+interface PropertyRecord {
+  account_number: string;
+  property_address: string;
+  owner_name: string;
+  mail_address: string;
+  total_value: number;
+  [key: string]: any;
+}
+
+const propertyDatabase: Record<string, PropertyRecord> = {
   "0010000010001": {
     // Basic Information
     account_number: "0010000010001",
@@ -194,7 +203,7 @@ export async function GET(
 }
 
 // Generate realistic property data for any account number
-function generatePropertyFromId(id: string): any {
+function generatePropertyFromId(id: string): PropertyRecord {
   const num = parseInt(id.slice(-4)) || 1;
   const isCommercial = num % 5 === 0;
   const isHighValue = num % 3 === 0;

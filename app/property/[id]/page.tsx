@@ -1,14 +1,14 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { 
-  Home, MapPin, DollarSign, User, Calendar, TrendingUp, 
-  Building, Ruler, FileText, AlertCircle, BarChart3,
-  Brain, History, Map, Calculator
+  Home, MapPin, DollarSign, User, TrendingUp, 
+  Building, Ruler, AlertCircle,
+  Brain, Map, Calculator
 } from 'lucide-react';
 
 interface PropertyDetails {
@@ -72,14 +72,13 @@ interface PropertyDetails {
 
 export default function PropertyDetailsPage() {
   const params = useParams();
-  const router = useRouter();
   const [property, setProperty] = useState<PropertyDetails | null>(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('overview');
 
   useEffect(() => {
     fetchPropertyDetails();
-  }, [params.id]);
+  }, [params.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const fetchPropertyDetails = async () => {
     try {
