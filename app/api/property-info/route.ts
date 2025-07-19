@@ -103,12 +103,19 @@ export async function POST(req: NextRequest) {
 
     // Check Google Cloud database first if we have a parcel ID
     let finalData: EnhancedPropertyData = visionData;
-    if (visionData.parcelId && (process.env.DATABASE_URL || process.env.GOOGLE_CLOUD_DATABASE_URL || process.env.GOOGLE_CLOUD_SQL_HOST)) {
+    const hasDbConfig = !!(process.env.DATABASE_URL || process.env.GOOGLE_CLOUD_DATABASE_URL || process.env.GOOGLE_CLOUD_SQL_HOST);
+    console.log('🔍 Database check - Config present:', hasDbConfig);
+    console.log('🔍 Database check - Parcel ID:', visionData.parcelId);
+    
+    if (visionData.parcelId && hasDbConfig) {
       console.log('🔍 Checking Google Cloud HCAD database for parcel:', visionData.parcelId);
       try {
         const dbResult = await searchByAccountNumber(visionData.parcelId);
+        console.log('🔍 Database search result:', dbResult ? 'FOUND' : 'NOT FOUND');
         if (dbResult) {
           console.log('✅ Found in Google Cloud database! Using database data.');
+          console.log('📊 DB Data - Address:', dbResult.propertyAddress);
+          console.log('📊 DB Data - Size:', dbResult.lotSize);
           // Map database fields to our expected format
           finalData = {
             ...visionData,
