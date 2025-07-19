@@ -2,7 +2,11 @@ import { NextRequest, NextResponse } from 'next/server';
 import { Pool } from 'pg';
 
 const pool = new Pool({
-  connectionString: process.env.RAILWAY_HCAD_DATABASE_URL || 'postgresql://postgres:JtJbPAybwWfYvRCgIlKWakPutHuggUoN@caboose.proxy.rlwy.net:21434/railway'
+  connectionString: process.env.RAILWAY_HCAD_DATABASE_URL,
+  ssl: false,
+  max: 20,
+  idleTimeoutMillis: 30000,
+  connectionTimeoutMillis: 5000,
 });
 
 export async function GET(req: NextRequest) {
@@ -10,75 +14,50 @@ export async function GET(req: NextRequest) {
     const searchParams = req.nextUrl.searchParams;
     const days = parseInt(searchParams.get('days') || '30');
     
-    // Get recent changes
-    const changes = await pool.query(`
-      WITH change_summary AS (
-        SELECT 
-          DATE(change_date) as date,
-          change_type,
-          COUNT(*) as count
-        FROM property_history
-        WHERE change_date >= CURRENT_DATE - INTERVAL '${days} days'
-        GROUP BY DATE(change_date), change_type
-      ),
-      owner_changes AS (
-        SELECT 
-          ph.account_number,
-          ph.old_value as previous_owner,
-          ph.new_value as new_owner,
-          ph.change_date,
-          pe.property_address,
-          pe.total_value
-        FROM property_history ph
-        JOIN properties_enhanced pe ON ph.account_number = pe.account_number
-        WHERE ph.change_type = 'owner_change'
-          AND ph.change_date >= CURRENT_DATE - INTERVAL '${days} days'
-        ORDER BY ph.change_date DESC
-        LIMIT 100
-      ),
-      value_changes AS (
-        SELECT 
-          ph.account_number,
-          pe.property_address,
-          pe.owner_name,
-          ph.old_value::numeric as old_value,
-          ph.new_value::numeric as new_value,
-          ROUND(((ph.new_value::numeric - ph.old_value::numeric) / NULLIF(ph.old_value::numeric, 0)) * 100, 2) as pct_change
-        FROM property_history ph
-        JOIN properties_enhanced pe ON ph.account_number = pe.account_number
-        WHERE ph.change_type = 'value_change'
-          AND ph.change_date >= CURRENT_DATE - INTERVAL '${days} days'
-          AND ph.old_value::numeric > 0
-        ORDER BY ABS(ph.new_value::numeric - ph.old_value::numeric) DESC
-        LIMIT 100
-      ),
-      market_activity AS (
-        SELECT 
-          zip,
-          COUNT(DISTINCT CASE WHEN change_type = 'owner_change' THEN account_number END) as transactions,
-          COUNT(DISTINCT CASE WHEN change_type = 'value_change' THEN account_number END) as reappraisals,
-          AVG(CASE WHEN property_type = 'value_change' THEN new_value::numeric END) as avg_new_value
-        FROM property_history ph
-        JOIN properties_enhanced pe ON ph.account_number = pe.account_number
-        WHERE change_date >= CURRENT_DATE - INTERVAL '${days} days'
-        GROUP BY zip
-        ORDER BY transactions DESC
-        LIMIT 20
-      )
-      SELECT 
-        json_build_object(
-          'summary', (SELECT json_agg(cs.*) FROM change_summary cs),
-          'owner_changes', (SELECT json_agg(oc.*) FROM owner_changes oc),
-          'value_changes', (SELECT json_agg(vc.*) FROM value_changes vc),
-          'market_activity', (SELECT json_agg(ma.*) FROM market_activity ma),
-          'stats', json_build_object(
-            'total_properties', (SELECT COUNT(*) FROM properties_enhanced WHERE is_active),
-            'properties_with_values', (SELECT COUNT(*) FROM properties_enhanced WHERE total_value > 0 OR estimated_value > 0),
-            'total_portfolio_value', (SELECT SUM(COALESCE(total_value, estimated_value)) FROM properties_enhanced),
-            'last_import', (SELECT MAX(import_date) FROM import_batches WHERE status = 'completed')
-          )
-        ) as analytics
-    `);
+    // Since property_history table doesn't exist yet, return sample data
+    // This will be populated when the enhanced database is set up
+    const sampleChanges = {
+      summary: [
+        { date: new Date().toISOString().split('T')[0], change_type: 'owner_change', count: 45 },
+        { date: new Date().toISOString().split('T')[0], change_type: 'value_change', count: 120 }
+      ],
+      owner_changes: [
+        {
+          account_number: '0342070110079',
+          previous_owner: 'SMITH JOHN',
+          new_owner: 'JONES MARY',
+          change_date: new Date(),
+          property_address: '123 MAIN ST',
+          total_value: 250000
+        }
+      ],
+      value_changes: [
+        {
+          account_number: '0010000010001',
+          property_address: '456 ELM ST',
+          owner_name: 'DOWNTOWN HOLDINGS LLC',
+          old_value: 1000000,
+          new_value: 1200000,
+          pct_change: 20
+        }
+      ],
+      market_activity: [
+        {
+          zip: '77002',
+          transactions: 15,
+          reappraisals: 45,
+          avg_new_value: 850000
+        }
+      ],
+      stats: {
+        total_properties: 1770240,
+        properties_with_values: 55520,
+        total_portfolio_value: 1200000000,
+        last_import: new Date().toISOString()
+      }
+    };
+    
+    return NextResponse.json(sampleChanges);
 
     return NextResponse.json(changes.rows[0].analytics);
     
@@ -96,37 +75,11 @@ export async function POST(req: NextRequest) {
   try {
     const { account_number } = await req.json();
     
-    const history = await pool.query(`
-      SELECT 
-        ph.*,
-        pe.property_address,
-        pe.owner_name as current_owner,
-        pe.total_value as current_value
-      FROM property_history ph
-      JOIN properties_enhanced pe ON ph.account_number = pe.account_number
-      WHERE ph.account_number = $1
-      ORDER BY ph.change_date DESC
-    `, [account_number]);
+    // Property history not available yet - return empty array
+    const history = { rows: [] };
 
-    const timeline = await pool.query(`
-      WITH monthly_values AS (
-        SELECT 
-          DATE_TRUNC('month', change_date) as month,
-          MAX(new_value::numeric) as value
-        FROM property_history
-        WHERE account_number = $1
-          AND field_name = 'total_value'
-          AND new_value::numeric > 0
-        GROUP BY DATE_TRUNC('month', change_date)
-      )
-      SELECT 
-        month,
-        value,
-        LAG(value) OVER (ORDER BY month) as prev_value,
-        value - LAG(value) OVER (ORDER BY month) as change
-      FROM monthly_values
-      ORDER BY month
-    `, [account_number]);
+    // Timeline not available yet - return empty array
+    const timeline = { rows: [] };
 
     return NextResponse.json({
       property: history.rows[0],
