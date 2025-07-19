@@ -20,6 +20,10 @@ interface PropertyDetails {
   // Ownership
   owner_name: string;
   mail_address: string;
+  mail_city?: string;
+  mail_state?: string;
+  mail_zip?: string;
+  full_mail_address?: string;
   ownership_history?: Array<{
     owner: string;
     date: string;
@@ -28,8 +32,11 @@ interface PropertyDetails {
   
   // Property Characteristics
   property_type: string;
+  property_class?: string;
+  property_class_desc?: string;
   year_built?: number;
   area_acres: number;
+  area_sqft?: number;
   square_feet?: number;
   bedrooms?: number;
   bathrooms?: number;
@@ -41,24 +48,39 @@ interface PropertyDetails {
   zip: string;
   subdivision?: string;
   city?: string;
+  state?: string;
   school_district?: string;
   neighborhood?: string;
   latitude?: number;
   longitude?: number;
+  has_geometry?: boolean;
+  bbox?: {
+    minx: number;
+    miny: number;
+    maxx: number;
+    maxy: number;
+  };
   
   // Valuation
-  total_value: number;
-  land_value?: number;
-  improvement_value?: number;
+  total_value: number | null;
+  land_value?: number | null;
+  improvement_value?: number | null;
+  assessed_value?: number | null;
   tax_amount?: number;
   exemptions?: string[];
   
   // Smart Features
+  is_owner_occupied?: boolean;
+  is_exempt?: boolean;
+  is_commercial?: boolean;
+  is_residential?: boolean;
   market_analysis?: {
-    estimated_value: number;
+    estimated_value: number | null;
     confidence: number;
-    trend: 'up' | 'down' | 'stable';
-    growth_rate: number;
+    trend: 'up' | 'down' | 'stable' | 'unknown';
+    growth_rate: number | null;
+    has_valuation?: boolean;
+    valuation_date?: string | null;
   };
   comparables?: Array<{
     address: string;
@@ -67,7 +89,21 @@ interface PropertyDetails {
     price_per_sqft: number;
   }>;
   investment_score?: number;
-  rental_estimate?: number;
+  rental_estimate?: number | null;
+  
+  // Data Quality
+  data_quality?: {
+    has_value: boolean;
+    has_geometry: boolean;
+    has_coordinates: boolean;
+    has_area: boolean;
+    completeness_score: number;
+  };
+  
+  // Metadata
+  import_date?: string;
+  estimated_value?: number;
+  confidence_score?: number;
 }
 
 export default function PropertyDetailsPage() {
@@ -279,7 +315,7 @@ export default function PropertyDetailsPage() {
                     {property.area_sqft && (
                       <div>
                         <p className="text-sm text-gray-500">Square Feet</p>
-                        <p className="font-medium">{property.area_sqft.toLocaleString()} sqft</p>
+                        <p className="font-medium">{Math.round(property.area_sqft).toLocaleString()} sqft</p>
                       </div>
                     )}
                     {property.assessed_value !== null && property.assessed_value !== undefined && (
