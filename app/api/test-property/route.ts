@@ -4,7 +4,8 @@ import { searchByAccountNumber } from '@/lib/google-cloud-db';
 export async function GET() {
   try {
     // Test the exact same search that property-info would do
-    const testParcelId = '0660640130020';
+    // Using a property that has appraisal values in the database
+    const testParcelId = '0000442'; // MAC DERMID CANNING LTD - has $2,098,836 value
     
     console.log('Testing property search...');
     console.log('Environment check:');
