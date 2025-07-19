@@ -4,9 +4,27 @@
 import { Pool } from 'pg';
 
 // For Google Cloud SQL (PostgreSQL)
+// Build connection string from individual parts to avoid conflicts with Vercel's DATABASE_URL
+const getConnectionString = () => {
+  // First try the explicit Google Cloud database URL
+  if (process.env.GOOGLE_CLOUD_DATABASE_URL) {
+    console.log('Using GOOGLE_CLOUD_DATABASE_URL');
+    return process.env.GOOGLE_CLOUD_DATABASE_URL;
+  }
+  
+  // Then try building from individual parts
+  if (process.env.GOOGLE_CLOUD_SQL_HOST) {
+    console.log('Building connection from individual Google Cloud SQL variables');
+    const password = encodeURIComponent(process.env.GOOGLE_CLOUD_SQL_PASSWORD || '');
+    return `postgresql://${process.env.GOOGLE_CLOUD_SQL_USER}:${password}@${process.env.GOOGLE_CLOUD_SQL_HOST}:${process.env.GOOGLE_CLOUD_SQL_PORT}/${process.env.GOOGLE_CLOUD_SQL_DATABASE}`;
+  }
+  
+  // Don't fall back to DATABASE_URL as it might be pointing to wrong database
+  throw new Error('Google Cloud database configuration not found');
+};
+
 const googleCloudPool = new Pool({
-  connectionString: process.env.DATABASE_URL || process.env.GOOGLE_CLOUD_DATABASE_URL || 
-    `postgresql://${process.env.GOOGLE_CLOUD_SQL_USER}:${process.env.GOOGLE_CLOUD_SQL_PASSWORD}@${process.env.GOOGLE_CLOUD_SQL_HOST}:${process.env.GOOGLE_CLOUD_SQL_PORT}/${process.env.GOOGLE_CLOUD_SQL_DATABASE}`,
+  connectionString: getConnectionString(),
   ssl: {
     rejectUnauthorized: false
   },
