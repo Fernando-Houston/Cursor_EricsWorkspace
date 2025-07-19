@@ -36,7 +36,18 @@ const ownerTypes = [
   'MANAGEMENT LLC', 'ASSET HOLDINGS'
 ];
 
-function generateProperties(searchType: string, searchValue: string): any[] {
+interface PropertyResult {
+  account_number: string;
+  owner_name: string;
+  property_address: string;
+  mail_address: string;
+  total_value: number;
+  area_acres: number;
+  property_type: string;
+  zip: string;
+}
+
+function generateProperties(searchType: string, searchValue: string): PropertyResult[] {
   const properties = [];
   const searchLower = searchValue.toLowerCase();
   

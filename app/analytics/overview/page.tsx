@@ -272,12 +272,12 @@ export default function AnalyticsOverview() {
               </div>
             ) : searchValue && !searching ? (
               <div className="text-center py-8 text-gray-500">
-                <p className="mb-2">No properties found for "{searchValue}"</p>
+                <p className="mb-2">No properties found for &quot;{searchValue}&quot;</p>
                 <p className="text-sm">Try searching for:</p>
                 <div className="mt-2 text-sm space-y-1">
-                  <p>• Address: "Main St", "Heights Blvd", "Westheimer"</p>
-                  <p>• ZIP: "77002", "77019", "77008"</p>
-                  <p>• Owner: "Invitation Homes", "Holdings", "Trust"</p>
+                  <p>• Address: &quot;Main St&quot;, &quot;Heights Blvd&quot;, &quot;Westheimer&quot;</p>
+                  <p>• ZIP: &quot;77002&quot;, &quot;77019&quot;, &quot;77008&quot;</p>
+                  <p>• Owner: &quot;Invitation Homes&quot;, &quot;Holdings&quot;, &quot;Trust&quot;</p>
                 </div>
               </div>
             ) : null}
