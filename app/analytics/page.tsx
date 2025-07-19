@@ -79,7 +79,7 @@ export default function AnalyticsDashboard() {
             </CardHeader>
             <CardContent>
               <p className="text-2xl font-bold">
-                ${(data?.stats.total_portfolio_value / 1e9).toFixed(1)}B
+                ${((data?.stats.total_portfolio_value || 0) / 1e9).toFixed(1)}B
               </p>
             </CardContent>
           </Card>
