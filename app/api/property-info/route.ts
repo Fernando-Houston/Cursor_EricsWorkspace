@@ -116,6 +116,11 @@ export async function POST(req: NextRequest) {
           console.log('✅ Found in Google Cloud database! Using database data.');
           console.log('📊 DB Data - Address:', dbResult.propertyAddress);
           console.log('📊 DB Data - Size:', dbResult.lotSize);
+          console.log('📊 DB Data - Total Value:', dbResult.totalValue);
+          
+          // Check if we have appraisal values
+          const hasAppraisalData = dbResult.totalValue || dbResult.assessedValue || dbResult.landValue;
+          
           // Map database fields to our expected format
           finalData = {
             ...visionData,
@@ -142,6 +147,17 @@ export async function POST(req: NextRequest) {
             enhancedBy: 'google-cloud-db',
             source: 'google-cloud-db'
           };
+          
+          // If no appraisal data in database, we could fall back to web scraping
+          if (!hasAppraisalData) {
+            console.log('⚠️ No appraisal data in database for this property');
+            console.log('💡 Note: Real Property with GIS types typically lack appraisal values in this database');
+            // Could enable web scraping here if needed
+            // finalData.needsAppraisalScraping = true;
+          } else {
+            console.log('✅ Appraisal data found in database');
+          }
+          
           // Skip HCAD web search since we have database data
           console.log('⏭️ Skipping HCAD web search - using database data');
         } else {
