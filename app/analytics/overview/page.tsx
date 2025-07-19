@@ -1,9 +1,10 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Link from 'next/link';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Building2, Users, DollarSign, TrendingUp, Search, Home } from 'lucide-react';
+import { Building2, Users, DollarSign, TrendingUp, Search } from 'lucide-react';
 
 interface AnalyticsData {
   stats: {
@@ -44,7 +45,15 @@ export default function AnalyticsOverview() {
   const [loading, setLoading] = useState(true);
   const [searchType, setSearchType] = useState('owner');
   const [searchValue, setSearchValue] = useState('');
-  const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [searchResults, setSearchResults] = useState<{
+    account_number: string;
+    owner_name: string;
+    property_address: string;
+    mail_address: string;
+    total_value: number;
+    area_acres: number;
+    property_type: string;
+  }[]>([]);
   const [searching, setSearching] = useState(false);
 
   useEffect(() => {
@@ -112,12 +121,12 @@ export default function AnalyticsOverview() {
               </svg>
               AI Insights
             </a>
-            <a
+            <Link
               href="/"
               className="px-6 py-3 border border-gray-300 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800"
             >
               Back to Home
-            </a>
+            </Link>
           </div>
         </div>
 

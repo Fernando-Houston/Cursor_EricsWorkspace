@@ -5,7 +5,7 @@ const pool = new Pool({
   connectionString: process.env.RAILWAY_HCAD_DATABASE_URL || 'postgresql://postgres:JtJbPAybwWfYvRCgIlKWakPutHuggUoN@caboose.proxy.rlwy.net:21434/railway'
 });
 
-export async function GET(req: NextRequest) {
+export async function GET() {
   try {
     // Get basic statistics
     const stats = await pool.query(`
@@ -105,7 +105,7 @@ export async function POST(req: NextRequest) {
     const { searchType, searchValue } = await req.json();
     
     let query = '';
-    let params: any[] = [];
+    let params: (string | number)[] = [];
     
     switch (searchType) {
       case 'owner':

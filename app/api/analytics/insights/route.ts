@@ -6,7 +6,7 @@ const pool = new Pool({
     'postgresql://postgres:JtJbPAybwWfYvRCgIlKWakPutHuggUoN@caboose.proxy.rlwy.net:21434/railway'
 });
 
-export async function GET(req: NextRequest) {
+export async function GET() {
   try {
     // Get hot market zones
     const hotZones = await pool.query(`

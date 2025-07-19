@@ -3,13 +3,13 @@
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { BarChart, LineChart, PieChart, ScatterChart } from 'lucide-react';
+// Icons imported but not used in this version
 
 interface AnalyticsData {
-  summary: any[];
-  owner_changes: any[];
-  value_changes: any[];
-  market_activity: any[];
+  summary: Array<{ date: string; change_type: string; count: number }>;
+  owner_changes: Array<{ property_address: string; previous_owner: string; new_owner: string; change_date: string; total_value?: number }>;
+  value_changes: Array<{ property_address: string; owner_name: string; old_value: number; new_value: number; pct_change: number }>;
+  market_activity: Array<{ zip: string; transactions: number; reappraisals: number; avg_new_value: number }>;
   stats: {
     total_properties: number;
     properties_with_values: number;
@@ -25,7 +25,7 @@ export default function AnalyticsDashboard() {
 
   useEffect(() => {
     fetchAnalytics();
-  }, [timeRange]);
+  }, [timeRange]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const fetchAnalytics = async () => {
     try {

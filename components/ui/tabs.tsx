@@ -10,7 +10,7 @@ const Tabs = React.forwardRef<
     <div ref={ref} className={className} {...props}>
       {React.Children.map(children, child => {
         if (React.isValidElement(child)) {
-          return React.cloneElement(child as any, { activeTab, setActiveTab })
+          return React.cloneElement(child as React.ReactElement<any>, { activeTab, setActiveTab })
         }
         return child
       })}
@@ -30,7 +30,7 @@ const TabsList = React.forwardRef<
   >
     {React.Children.map(children, child => {
       if (React.isValidElement(child)) {
-        return React.cloneElement(child as any, { activeTab, setActiveTab })
+        return React.cloneElement(child as React.ReactElement<any>, { activeTab, setActiveTab })
       }
       return child
     })}
