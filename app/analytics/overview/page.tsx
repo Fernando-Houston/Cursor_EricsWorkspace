@@ -62,8 +62,8 @@ export default function AnalyticsOverview() {
 
   const fetchAnalytics = async () => {
     try {
-      // Use direct endpoint for better connection handling
-      const response = await fetch('/api/analytics/direct');
+      // Use static endpoint for instant loading
+      const response = await fetch('/api/analytics/static');
       const result = await response.json();
       setData(result);
     } catch (error) {
