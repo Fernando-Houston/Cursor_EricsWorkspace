@@ -3,7 +3,8 @@ import { Pool } from 'pg';
 
 const pool = new Pool({
   connectionString: process.env.RAILWAY_HCAD_DATABASE_URL || 
-    'postgresql://postgres:JtJbPAybwWfYvRCgIlKWakPutHuggUoN@caboose.proxy.rlwy.net:21434/railway'
+    'postgresql://postgres:JtJbPAybwWfYvRCgIlKWakPutHuggUoN@caboose.proxy.rlwy.net:21434/railway',
+  connectionTimeoutMillis: 10000 // 10 second timeout
 });
 
 export async function GET() {
