@@ -7,8 +7,7 @@ const pool = new Pool({
   ssl: { rejectUnauthorized: false }, // Railway requires SSL
   connectionTimeoutMillis: 30000, // 30 second timeout
   max: 3, // Limit connections
-  idleTimeoutMillis: 30000,
-  connectionRetryInterval: 2000
+  idleTimeoutMillis: 30000
 });
 
 export async function GET() {
