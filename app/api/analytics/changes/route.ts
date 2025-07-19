@@ -47,8 +47,6 @@ export async function GET() {
     };
     
     return NextResponse.json(sampleChanges);
-
-    return NextResponse.json(changes.rows[0].analytics);
     
   } catch (error) {
     console.error('Analytics error:', error);
