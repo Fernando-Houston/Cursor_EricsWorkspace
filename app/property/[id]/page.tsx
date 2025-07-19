@@ -270,8 +270,24 @@ export default function PropertyDetailsPage() {
                     </div>
                     <div>
                       <p className="text-sm text-gray-500">Property Type</p>
-                      <p className="font-medium">{property.property_type}</p>
+                      <p className="font-medium">{property.property_type || 'Unknown'}</p>
                     </div>
+                    <div>
+                      <p className="text-sm text-gray-500">Property Class</p>
+                      <p className="font-medium">{property.property_class || 'N/A'} {property.property_class_desc ? `- ${property.property_class_desc}` : ''}</p>
+                    </div>
+                    {property.area_sqft && (
+                      <div>
+                        <p className="text-sm text-gray-500">Square Feet</p>
+                        <p className="font-medium">{property.area_sqft.toLocaleString()} sqft</p>
+                      </div>
+                    )}
+                    {property.assessed_value !== null && property.assessed_value !== undefined && (
+                      <div>
+                        <p className="text-sm text-gray-500">Assessed Value</p>
+                        <p className="font-medium">${property.assessed_value.toLocaleString()}</p>
+                      </div>
+                    )}
                     {property.bedrooms && (
                       <div>
                         <p className="text-sm text-gray-500">Bedrooms</p>
@@ -301,11 +317,19 @@ export default function PropertyDetailsPage() {
                     </div>
                     <div>
                       <p className="text-sm text-gray-500">Mailing Address</p>
-                      <p className="font-medium">{property.mail_address}</p>
+                      <p className="font-medium">{property.full_mail_address || property.mail_address}</p>
                     </div>
-                    {property.property_address !== property.mail_address && (
-                      <Badge variant="secondary">Non-Owner Occupied</Badge>
-                    )}
+                    <div className="flex gap-2 flex-wrap">
+                      {property.is_owner_occupied === false && (
+                        <Badge variant="secondary">Non-Owner Occupied</Badge>
+                      )}
+                      {property.is_exempt && (
+                        <Badge variant="outline">Tax Exempt</Badge>
+                      )}
+                      {property.property_class && (
+                        <Badge variant="outline">Class: {property.property_class}</Badge>
+                      )}
+                    </div>
                   </CardContent>
                 </Card>
               </>
@@ -455,15 +479,82 @@ export default function PropertyDetailsPage() {
               </CardHeader>
               <CardContent>
                 <div className="aspect-square bg-gray-100 rounded-lg flex items-center justify-center">
-                  <MapPin className="h-12 w-12 text-gray-400" />
+                  {property.latitude && property.longitude ? (
+                    <div className="text-center">
+                      <MapPin className="h-12 w-12 text-blue-500 mx-auto mb-2" />
+                      <p className="text-sm text-gray-600">Lat: {property.latitude.toFixed(6)}</p>
+                      <p className="text-sm text-gray-600">Lon: {property.longitude.toFixed(6)}</p>
+                    </div>
+                  ) : (
+                    <MapPin className="h-12 w-12 text-gray-400" />
+                  )}
                 </div>
                 <div className="mt-4 space-y-2 text-sm">
-                  <p><span className="text-gray-500">Neighborhood:</span> {property.neighborhood || 'N/A'}</p>
-                  <p><span className="text-gray-500">School District:</span> {property.school_district || 'N/A'}</p>
-                  <p><span className="text-gray-500">Subdivision:</span> {property.subdivision || 'N/A'}</p>
+                  <p><span className="text-gray-500">City:</span> {property.city || 'N/A'}</p>
+                  <p><span className="text-gray-500">State:</span> {property.state || 'TX'}</p>
+                  <p><span className="text-gray-500">ZIP:</span> {property.zip || 'N/A'}</p>
+                  {property.property_class_desc && (
+                    <p><span className="text-gray-500">Class Description:</span> {property.property_class_desc}</p>
+                  )}
                 </div>
               </CardContent>
             </Card>
+            
+            {/* Data Quality Card */}
+            {property.data_quality && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <AlertCircle className="h-5 w-5" />
+                    Data Quality
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    <div>
+                      <p className="text-sm text-gray-500 mb-1">Completeness Score</p>
+                      <div className="flex items-center gap-2">
+                        <div className="flex-1 bg-gray-200 rounded-full h-2">
+                          <div 
+                            className={`h-2 rounded-full ${
+                              property.data_quality.completeness_score >= 80 ? 'bg-green-500' :
+                              property.data_quality.completeness_score >= 50 ? 'bg-yellow-500' :
+                              'bg-red-500'
+                            }`}
+                            style={{ width: `${property.data_quality.completeness_score}%` }}
+                          />
+                        </div>
+                        <span className="text-sm font-medium">{property.data_quality.completeness_score}%</span>
+                      </div>
+                    </div>
+                    
+                    <div className="grid grid-cols-2 gap-2 text-sm">
+                      <div className="flex items-center gap-1">
+                        {property.data_quality.has_value ? '✅' : '❌'} Valuation Data
+                      </div>
+                      <div className="flex items-center gap-1">
+                        {property.data_quality.has_coordinates ? '✅' : '❌'} GPS Location
+                      </div>
+                      <div className="flex items-center gap-1">
+                        {property.data_quality.has_area ? '✅' : '❌'} Area Size
+                      </div>
+                      <div className="flex items-center gap-1">
+                        {property.year_built ? '✅' : '❌'} Year Built
+                      </div>
+                    </div>
+                    
+                    {!property.data_quality.has_value && (
+                      <div className="mt-3 p-3 bg-yellow-50 rounded-lg">
+                        <p className="text-sm text-yellow-800">
+                          <strong>Note:</strong> This property lacks valuation data. 
+                          The displayed estimates are AI-generated based on similar properties.
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
           </div>
         </div>
       </div>
