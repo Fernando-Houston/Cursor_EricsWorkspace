@@ -189,7 +189,7 @@ export default function AnalyticsOverview() {
             <CardContent>
               <p className="text-3xl font-bold">{investorPercentage}%</p>
               <p className="text-sm opacity-90">
-                {data?.stats.non_owner_occupied.toLocaleString()} non-owner occupied
+                {(data?.stats.non_owner_occupied || 0).toLocaleString()} non-owner occupied
               </p>
             </CardContent>
           </Card>
