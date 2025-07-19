@@ -156,10 +156,10 @@ export default function AnalyticsOverview() {
             </CardHeader>
             <CardContent>
               <p className="text-3xl font-bold">
-                ${(data?.stats.total_portfolio_value / 1e9).toFixed(1)}B
+                ${((data?.stats.total_portfolio_value || 0) / 1e9).toFixed(1)}B
               </p>
               <p className="text-sm opacity-90">
-                Avg: ${(data?.stats.avg_property_value / 1e3).toFixed(0)}k
+                Avg: ${((data?.stats.avg_property_value || 0) / 1e3).toFixed(0)}k
               </p>
             </CardContent>
           </Card>
