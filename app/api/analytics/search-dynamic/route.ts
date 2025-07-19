@@ -11,7 +11,7 @@ const houstonStreets = [
   'KATY FWY', 'SOUTHWEST FWY', 'GULF FWY', 'NORTH FWY', 'EAST FWY'
 ];
 
-const neighborhoods = {
+const neighborhoods: Record<string, string> = {
   '77002': 'Downtown',
   '77003': 'East Downtown',
   '77004': 'Museum District/Midtown',
