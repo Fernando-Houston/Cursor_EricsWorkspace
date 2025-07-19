@@ -211,6 +211,7 @@ export default function AnalyticsOverview() {
                 value={searchType}
                 onChange={(e) => setSearchType(e.target.value)}
               >
+                <option value="account">By Account Number</option>
                 <option value="owner">By Owner Name</option>
                 <option value="address">By Address</option>
                 <option value="zip">By ZIP Code</option>
@@ -218,7 +219,13 @@ export default function AnalyticsOverview() {
               </select>
               <Input
                 type="text"
-                placeholder={searchType === 'high-value' ? 'Minimum value' : 'Search...'}
+                placeholder={
+                  searchType === 'high-value' ? 'Minimum value' : 
+                  searchType === 'account' ? 'Enter account number (e.g., 0660640130020)' :
+                  searchType === 'zip' ? 'Enter ZIP code' :
+                  searchType === 'address' ? 'Enter street name' :
+                  'Search...'
+                }
                 value={searchValue}
                 onChange={(e) => setSearchValue(e.target.value)}
                 onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
@@ -275,6 +282,7 @@ export default function AnalyticsOverview() {
                 <p className="mb-2">No properties found for &quot;{searchValue}&quot;</p>
                 <p className="text-sm">Try searching for:</p>
                 <div className="mt-2 text-sm space-y-1">
+                  <p>• Account: &quot;0660640130020&quot;, &quot;1060170000035&quot;</p>
                   <p>• Address: &quot;Main St&quot;, &quot;Heights Blvd&quot;, &quot;Westheimer&quot;</p>
                   <p>• ZIP: &quot;77002&quot;, &quot;77019&quot;, &quot;77008&quot;</p>
                   <p>• Owner: &quot;Invitation Homes&quot;, &quot;Holdings&quot;, &quot;Trust&quot;</p>

@@ -51,7 +51,36 @@ function generateProperties(searchType: string, searchValue: string): PropertyRe
   const properties = [];
   const searchLower = searchValue.toLowerCase();
   
-  if (searchType === 'address') {
+  if (searchType === 'account') {
+    // Search by account/parcel number
+    const accountNum = searchValue.replace(/\D/g, ''); // Remove non-digits
+    
+    // Check if it matches any of our sample properties
+    const exactMatch = sampleProperties.find(p => 
+      p.account_number === searchValue || p.account_number === accountNum
+    );
+    
+    if (exactMatch) {
+      properties.push(exactMatch);
+    } else {
+      // Generate a property for this account number
+      const num = parseInt(accountNum.slice(-4)) || 1;
+      const isCommercial = accountNum.charAt(2) === '6' || accountNum.charAt(2) === '7';
+      const baseValue = isCommercial ? 2500000 : 450000;
+      const value = baseValue + (num * 1000);
+      
+      properties.push({
+        account_number: searchValue,
+        owner_name: `PROPERTY OWNER ${num}`,
+        property_address: `${1000 + num} ${houstonStreets[num % houstonStreets.length]}`,
+        mail_address: `${1000 + num} ${houstonStreets[num % houstonStreets.length]}`,
+        total_value: value,
+        area_acres: isCommercial ? 0.75 : 0.25,
+        property_type: isCommercial ? 'COMMERCIAL' : 'RESIDENTIAL',
+        zip: Object.keys(neighborhoods)[num % Object.keys(neighborhoods).length]
+      });
+    }
+  } else if (searchType === 'address') {
     // Generate properties for the searched street
     const matchingStreet = houstonStreets.find(street => 
       street.toLowerCase().includes(searchLower) || 
@@ -139,12 +168,17 @@ function generateProperties(searchType: string, searchValue: string): PropertyRe
   const sampleProperties = [
     { account_number: "0010000010001", owner_name: "DOWNTOWN HOLDINGS LLC", property_address: "800 MAIN ST", mail_address: "PO BOX 1234", total_value: 12500000, area_acres: 0.45, property_type: "COMMERCIAL", zip: "77002" },
     { account_number: "0030000030001", owner_name: "INVITATION HOMES", property_address: "924 HEIGHTS BLVD", mail_address: "PO BOX 7890", total_value: 485000, area_acres: 0.15, property_type: "RESIDENTIAL", zip: "77008" },
-    { account_number: "0020000020001", owner_name: "RIVER OAKS TRUST", property_address: "3800 RIVER OAKS BLVD", mail_address: "3800 RIVER OAKS BLVD", total_value: 8500000, area_acres: 2.5, property_type: "RESIDENTIAL", zip: "77019" }
+    { account_number: "0020000020001", owner_name: "RIVER OAKS TRUST", property_address: "3800 RIVER OAKS BLVD", mail_address: "3800 RIVER OAKS BLVD", total_value: 8500000, area_acres: 2.5, property_type: "RESIDENTIAL", zip: "77019" },
+    // Real Harris County account numbers from screenshot
+    { account_number: "0660640130020", owner_name: "ELMORE SCOTT & MARTHA KARIME", property_address: "730 HERRICK CT", mail_address: "730 HERRICK CT KATY TX 77450", total_value: 487514, area_acres: 0.238, property_type: "RESIDENTIAL", zip: "77450" },
+    { account_number: "1060170000035", owner_name: "DOWNTOWN INVESTMENT GROUP", property_address: "1000 MAIN ST", mail_address: "PO BOX 1234", total_value: 578806, area_acres: 0.233, property_type: "COMMERCIAL", zip: "77002" }
   ];
   
   // Add sample properties if they match the search
   sampleProperties.forEach(prop => {
-    if (searchType === 'address' && prop.property_address.toLowerCase().includes(searchLower)) {
+    if (searchType === 'account' && (prop.account_number === searchValue || prop.account_number === searchValue.replace(/\D/g, ''))) {
+      properties.unshift(prop);
+    } else if (searchType === 'address' && prop.property_address.toLowerCase().includes(searchLower)) {
       properties.unshift(prop);
     } else if (searchType === 'zip' && prop.zip === searchValue) {
       properties.unshift(prop);
