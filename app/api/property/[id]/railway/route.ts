@@ -254,7 +254,21 @@ function estimateRent(property: {
   return Math.round(totalValue * rentRatio);
 }
 
-function calculateDataCompleteness(property: any): number {
+function calculateDataCompleteness(property: {
+  account_number?: string;
+  owner_name?: string;
+  property_address?: string;
+  total_value?: number | string | null;
+  land_value?: number | string | null;
+  building_value?: number | string | null;
+  area_acres?: number | string | null;
+  area_sqft?: number | string | null;
+  year_built?: number | null;
+  property_type?: string;
+  zip?: string;
+  latitude?: number | null;
+  longitude?: number | null;
+}): number {
   const fields = [
     property.account_number,
     property.owner_name,
