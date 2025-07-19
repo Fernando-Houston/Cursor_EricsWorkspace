@@ -92,7 +92,12 @@ export async function searchByAccountNumber(accountNumber: string): Promise<Prop
         assessed_value as "assessedValue",
         centroid_lat as "latitude",
         centroid_lon as "longitude",
-        extra_data
+        extra_data,
+        -- Debug: Show all value-related fields
+        total_value,
+        land_value,
+        building_value,
+        assessed_value
       FROM properties
       WHERE account_number = $1
       LIMIT 1
