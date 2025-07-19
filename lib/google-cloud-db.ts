@@ -7,8 +7,8 @@ import { Pool } from 'pg';
 // Build connection string from individual parts to avoid conflicts with Vercel's DATABASE_URL
 const getConnectionString = () => {
   // First try the explicit Google Cloud database URL
-  if (process.env.GOOGLE_CLOUD_DATABASE_URL) {
-    console.log('Using GOOGLE_CLOUD_DATABASE_URL');
+  if (process.env.GOOGLE_CLOUD_DATABASE_URL && process.env.GOOGLE_CLOUD_DATABASE_URL.trim() !== '') {
+    console.log('Using GOOGLE_CLOUD_DATABASE_URL:', process.env.GOOGLE_CLOUD_DATABASE_URL.replace(/:.*@/, ':***@'));
     return process.env.GOOGLE_CLOUD_DATABASE_URL;
   }
   
@@ -25,7 +25,10 @@ const getConnectionString = () => {
       .replace(/;/g, '%3B')
       .replace(/>/g, '%3E')
       .replace(/\./g, '.');
-    const connString = `postgresql://${process.env.GOOGLE_CLOUD_SQL_USER}:${encodedPassword}@${process.env.GOOGLE_CLOUD_SQL_HOST}:${process.env.GOOGLE_CLOUD_SQL_PORT}/${process.env.GOOGLE_CLOUD_SQL_DATABASE}`;
+    const port = process.env.GOOGLE_CLOUD_SQL_PORT || '5432';
+    const database = process.env.GOOGLE_CLOUD_SQL_DATABASE || 'hcad';
+    const user = process.env.GOOGLE_CLOUD_SQL_USER || 'postgres';
+    const connString = `postgresql://${user}:${encodedPassword}@${process.env.GOOGLE_CLOUD_SQL_HOST}:${port}/${database}`;
     console.log('Built connection string (password masked):', connString.replace(/:.*@/, ':***@'));
     return connString;
   }
