@@ -1,18 +1,7 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { Pool } from 'pg';
+import { NextResponse } from 'next/server';
 
-const pool = new Pool({
-  connectionString: process.env.RAILWAY_HCAD_DATABASE_URL,
-  ssl: false,
-  max: 20,
-  idleTimeoutMillis: 30000,
-  connectionTimeoutMillis: 5000,
-});
-
-export async function GET(req: NextRequest) {
+export async function GET() {
   try {
-    const searchParams = req.nextUrl.searchParams;
-    const days = parseInt(searchParams.get('days') || '30');
     
     // Since property_history table doesn't exist yet, return sample data
     // This will be populated when the enhanced database is set up
@@ -71,9 +60,8 @@ export async function GET(req: NextRequest) {
 }
 
 // Get specific property history
-export async function POST(req: NextRequest) {
+export async function POST() {
   try {
-    const { account_number } = await req.json();
     
     // Property history not available yet - return empty array
     const history = { rows: [] };
