@@ -165,7 +165,7 @@ export default function PropertyDetailsPage() {
   }
 
   const pricePerSqFt = property.square_feet && property.total_value ? property.total_value / property.square_feet : 0;
-  const improvementRatio = property.land_value ? 
+  const improvementRatio = property.land_value && property.total_value ? 
     ((property.improvement_value || 0) / property.total_value * 100).toFixed(1) : 0;
 
   return (
@@ -393,16 +393,18 @@ export default function PropertyDetailsPage() {
                       <span className="font-medium">Total Appraised Value</span>
                       <span className="text-xl font-bold">${property.total_value ? property.total_value.toLocaleString() : 'N/A'}</span>
                     </div>
-                    <div className="pt-4">
-                      <p className="text-sm text-gray-500 mb-2">Improvement Ratio</p>
-                      <div className="w-full bg-gray-200 rounded-full h-2">
-                        <div 
-                          className="bg-blue-600 h-2 rounded-full"
-                          style={{ width: `${improvementRatio}%` }}
-                        />
+                    {property.total_value && property.land_value && (
+                      <div className="pt-4">
+                        <p className="text-sm text-gray-500 mb-2">Improvement Ratio</p>
+                        <div className="w-full bg-gray-200 rounded-full h-2">
+                          <div 
+                            className="bg-blue-600 h-2 rounded-full"
+                            style={{ width: `${improvementRatio}%` }}
+                          />
+                        </div>
+                        <p className="text-sm text-gray-600 mt-1">{improvementRatio}% of total value</p>
                       </div>
-                      <p className="text-sm text-gray-600 mt-1">{improvementRatio}% of total value</p>
-                    </div>
+                    )}
                   </div>
                 </CardContent>
               </Card>
@@ -425,10 +427,10 @@ export default function PropertyDetailsPage() {
                           ${property.market_analysis.estimated_value ? property.market_analysis.estimated_value.toLocaleString() : 'N/A'}
                         </p>
                         <p className={`text-sm ${
-                          property.market_analysis.estimated_value > property.total_value 
+                          property.market_analysis.estimated_value && property.total_value && property.market_analysis.estimated_value > property.total_value 
                             ? 'text-green-600' : 'text-red-600'
                         }`}>
-                          {property.market_analysis.estimated_value > property.total_value ? '+' : ''}
+                          {property.market_analysis.estimated_value && property.total_value && property.market_analysis.estimated_value > property.total_value ? '+' : ''}
                           {property.market_analysis.estimated_value && property.total_value ? 
                             ((property.market_analysis.estimated_value - property.total_value) / property.total_value * 100).toFixed(1) : '0'}%
                         </p>
