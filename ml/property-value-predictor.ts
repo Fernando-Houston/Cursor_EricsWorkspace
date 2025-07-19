@@ -64,7 +64,7 @@ export class PropertyValuePredictor {
   }
 
   // Find k-nearest neighbors based on multiple features
-  private findKNN(property: PropertyFeatures, k: number = 20): TrainingData[] {
+  private findKNN(property: PropertyFeatures, k: number = 20): (TrainingData & { score: number })[] {
     const scored = this.trainingData.map(training => {
       // Calculate feature distances
       const distanceMiles = this.calculateDistance(
