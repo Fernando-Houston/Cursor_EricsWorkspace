@@ -4,7 +4,11 @@ import { Pool } from 'pg';
 
 const pool = new Pool({
   connectionString: process.env.RAILWAY_HCAD_DATABASE_URL || 'postgresql://postgres:JtJbPAybwWfYvRCgIlKWakPutHuggUoN@caboose.proxy.rlwy.net:21434/railway',
-  connectionTimeoutMillis: 10000 // 10 second timeout
+  ssl: { rejectUnauthorized: false }, // Railway requires SSL
+  connectionTimeoutMillis: 30000, // 30 second timeout
+  max: 3, // Limit connections
+  idleTimeoutMillis: 30000,
+  connectionRetryInterval: 2000
 });
 
 export async function GET() {
