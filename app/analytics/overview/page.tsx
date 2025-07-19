@@ -248,12 +248,17 @@ export default function AnalyticsOverview() {
                     {searchResults.map((result, idx) => (
                       <tr key={idx} className="border-b hover:bg-gray-50 dark:hover:bg-gray-800">
                         <td className="p-2">
-                          <div>
-                            <p className="font-medium">{result.property_address}</p>
-                            {result.property_address !== result.mail_address && (
-                              <p className="text-xs text-gray-500">Mail: {result.mail_address}</p>
-                            )}
-                          </div>
+                          <Link 
+                            href={`/property/${result.account_number}`}
+                            className="hover:text-blue-600"
+                          >
+                            <div>
+                              <p className="font-medium underline">{result.property_address}</p>
+                              {result.property_address !== result.mail_address && (
+                                <p className="text-xs text-gray-500">Mail: {result.mail_address}</p>
+                              )}
+                            </div>
+                          </Link>
                         </td>
                         <td className="p-2">{result.owner_name}</td>
                         <td className="p-2 text-right">
