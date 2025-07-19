@@ -134,6 +134,7 @@ export async function POST(req: NextRequest) {
             size: dbResult.squareFootage ? `${dbResult.squareFootage} sq ft` : 
                   dbResult.lotSize || 
                   visionData.size || 
+                  visionData.lotSize ||
                   'Not Available',
             propertyType: dbResult.propertyType || visionData.propertyType,
             parcelId: visionData.parcelId,
@@ -155,30 +156,40 @@ export async function POST(req: NextRequest) {
     if (visionData.parcelId && !finalData.source) {
        console.log('🔍 Stage 2: Enhancing data with HCAD search...');
        try {
-         const hcadResponse = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3001'}/api/hcad-search`, {
-           method: 'POST',
-           headers: {
-             'Content-Type': 'application/json',
-           },
-           body: JSON.stringify({ parcelId: visionData.parcelId })
-         });
+         // Get the correct base URL for the environment
+         const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 
+                        (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : '') ||
+                        'http://localhost:3001';
          
-         if (hcadResponse.ok) {
-           const hcadResult = await hcadResponse.json();
-           if (hcadResult.success && hcadResult.data) {
-             console.log('✅ HCAD search completed successfully');
-             finalData = mergeHCADData(visionData, hcadResult.data);
+         // Only attempt HCAD search if we have a valid base URL
+         if (baseUrl && baseUrl !== '') {
+           const hcadResponse = await fetch(`${baseUrl}/api/hcad-search`, {
+             method: 'POST',
+             headers: {
+               'Content-Type': 'application/json',
+             },
+             body: JSON.stringify({ parcelId: visionData.parcelId })
+           });
+           
+           if (hcadResponse.ok) {
+             const hcadResult = await hcadResponse.json();
+             if (hcadResult.success && hcadResult.data) {
+               console.log('✅ HCAD search completed successfully');
+               finalData = mergeHCADData(visionData, hcadResult.data);
+             } else {
+               console.log('⚠️ HCAD search returned no data, using vision data only');
+             }
            } else {
-             console.log('⚠️ HCAD search returned no data, using vision data only');
+             console.log('⚠️ HCAD search failed, using vision data only');
            }
          } else {
-           console.log('⚠️ HCAD search failed, using vision data only');
+           console.log('⚠️ No valid base URL for HCAD search, using vision data only');
          }
        } catch (hcadError) {
          console.warn('⚠️ HCAD search failed, using vision data only:', hcadError);
        }
      } else {
-       console.log('⚠️ Missing parcel ID, skipping HCAD enhancement');
+       console.log('⚠️ Missing parcel ID or already have database data, skipping HCAD enhancement');
      }
 
     // Format response to match existing frontend expectations
@@ -249,6 +260,12 @@ export async function POST(req: NextRequest) {
     };
 
     console.log('🎉 Property extraction completed successfully');
+    console.log('📊 Final response data:');
+    console.log('- Address:', response.propertyAddress);
+    console.log('- Owner:', response.owner);
+    console.log('- Size:', response.size);
+    console.log('- Appraisal:', response.appraisal);
+    console.log('- Source:', finalData.source || 'vision-only');
     return NextResponse.json(response);
     
   } catch (error) {
