@@ -149,7 +149,7 @@ export default function PropertyDetailsPage() {
       const leads = existingLeads ? JSON.parse(existingLeads) : [];
       
       // Check if this property is already saved
-      const existingIndex = leads.findIndex((lead: any) => lead.parcelId === property.account_number);
+      const existingIndex = leads.findIndex((lead: { parcelId: string }) => lead.parcelId === property.account_number);
       
       if (existingIndex === -1) {
         // Format the property data to match the leads structure
