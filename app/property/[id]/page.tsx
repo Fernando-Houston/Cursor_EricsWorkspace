@@ -82,9 +82,18 @@ export default function PropertyDetailsPage() {
 
   const fetchPropertyDetails = async () => {
     try {
-      const response = await fetch(`/api/property/${params.id}`);
+      // Try Railway API first for real data
+      const response = await fetch(`/api/property/${params.id}/railway`);
       const data = await response.json();
-      setProperty(data);
+      
+      if (data.error && response.status === 404) {
+        // Try the static API as fallback
+        const fallbackResponse = await fetch(`/api/property/${params.id}`);
+        const fallbackData = await fallbackResponse.json();
+        setProperty(fallbackData);
+      } else {
+        setProperty(data);
+      }
     } catch (error) {
       console.error('Failed to fetch property details:', error);
     } finally {
@@ -294,7 +303,7 @@ export default function PropertyDetailsPage() {
                       <p className="text-sm text-gray-500">Mailing Address</p>
                       <p className="font-medium">{property.mail_address}</p>
                     </div>
-                    {property.owner_name !== property.mail_address && (
+                    {property.property_address !== property.mail_address && (
                       <Badge variant="secondary">Non-Owner Occupied</Badge>
                     )}
                   </CardContent>
