@@ -103,13 +103,13 @@ export async function GET() {
       source: 'railway-live'
     });
     
-  } catch (error: any) {
+  } catch (error) {
     console.error('Railway database error:', error);
     
     // Fallback to static data if Railway fails
     return NextResponse.json({
       error: 'Database error',
-      message: error.message,
+      message: error instanceof Error ? error.message : 'Unknown error',
       fallback: true,
       stats: {
         total_properties: 1774951,

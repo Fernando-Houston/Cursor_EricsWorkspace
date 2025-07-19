@@ -1,0 +1,58 @@
+name: Update HCAD Data Monthly
+
+on:
+  schedule:
+    # Run on the 5th of every month at 2 AM CST
+    - cron: '0 7 5 * *'
+  workflow_dispatch: # Allow manual trigger
+
+jobs:
+  update-hcad:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          
+      - name: Install dependencies
+        run: |
+          npm install @supabase/supabase-js csv-parser dotenv
+          
+      - name: Download HCAD Data
+        run: |
+          # Download latest HCAD export
+          curl -L -o hcad_latest.csv "${{ secrets.HCAD_DOWNLOAD_URL }}"
+          
+      - name: Import to Supabase
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+        run: |
+          node scripts/import-hcad-to-supabase.js hcad_latest.csv
+          
+      - name: Update Analytics Cache
+        run: |
+          # Trigger webhook to refresh materialized views
+          curl -X POST "${{ secrets.SUPABASE_URL }}/functions/v1/refresh-analytics" \
+            -H "Authorization: Bearer ${{ secrets.SUPABASE_ANON_KEY }}" \
+            -H "Content-Type: application/json"
+            
+      - name: Notify on Success
+        if: success()
+        uses: 8398a7/action-slack@v3
+        with:
+          status: success
+          text: 'HCAD data updated successfully! Properties: 1.77M+'
+          webhook_url: ${{ secrets.SLACK_WEBHOOK }}
+          
+      - name: Notify on Failure
+        if: failure()
+        uses: 8398a7/action-slack@v3
+        with:
+          status: failure
+          text: 'HCAD update failed! Check GitHub Actions for details.'
+          webhook_url: ${{ secrets.SLACK_WEBHOOK }}

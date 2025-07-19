@@ -19,7 +19,7 @@ export async function POST(req: NextRequest) {
     }
 
     let query = '';
-    let params: any[] = [];
+    let params: (string | number)[] = [];
     
     switch (searchType) {
       case 'account':
@@ -103,13 +103,13 @@ export async function POST(req: NextRequest) {
       source: 'railway-live'
     });
     
-  } catch (error: any) {
+  } catch (error) {
     console.error('Search error:', error);
     return NextResponse.json({
       results: [],
       count: 0,
       error: 'Search failed',
-      message: error.message
+      message: error instanceof Error ? error.message : 'Unknown error'
     }, { status: 500 });
   }
 }
