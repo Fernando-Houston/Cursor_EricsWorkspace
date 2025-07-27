@@ -1,8 +1,7 @@
 {
   "functions": {
     "app/api/property-info/route.ts": {
-      "maxDuration": 60,
-      "maxBodySize": "20mb"
+      "maxDuration": 60
     }
   },
   "build": {

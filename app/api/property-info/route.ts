@@ -60,6 +60,11 @@ function mergeHCADData(visionData: PropertyData, hcadData: HCADData) {
 export const runtime = 'nodejs';
 export const maxDuration = 60; // Increased timeout for AI processing
 
+// Body size limit for Vercel (20MB)
+export const bodyParser = {
+  sizeLimit: '20mb',
+};
+
 export async function POST(req: NextRequest) {
   try {
     console.log('🚀 Property extraction API called');
