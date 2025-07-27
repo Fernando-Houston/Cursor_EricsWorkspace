@@ -33,12 +33,15 @@ async function searchRailwayByAccountNumber(accountNumber: string) {
         state,
         zip
       FROM properties 
-      WHERE account_number = $1 OR account_number = $2
+      WHERE account_number = $1
       LIMIT 1
     `;
     
-    // Try both with and without formatting
-    const result = await client.query(query, [accountNumber, accountNumber.replace(/\D/g, '')]);
+    // Clean the account number - remove any non-digits
+    const cleanAccountNumber = accountNumber.replace(/\D/g, '');
+    console.log('🔍 Searching for account number:', cleanAccountNumber, `(${cleanAccountNumber.length} digits)`);
+    
+    const result = await client.query(query, [cleanAccountNumber]);
     
     if (result.rows.length > 0) {
       const row = result.rows[0];

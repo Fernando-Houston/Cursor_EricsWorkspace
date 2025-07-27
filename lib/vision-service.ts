@@ -98,7 +98,7 @@ CRITICAL EXTRACTION INSTRUCTIONS:
 - **Owner Name**: Look for "Owner", "Property Owner", company names (LLC, INC, etc.)
 - **Property Address**: Street address of the actual property location
 - **Mailing Address**: Where tax bills are sent (often different from property address)
-- **Parcel ID**: Long numeric identifier (e.g., "0660640130020")
+- **Parcel ID/Account Number**: EXACTLY 13-digit numeric identifier (e.g., "0660640130020", "0311640000001") - IMPORTANT: Harris County uses 13-digit account numbers, do NOT add extra zeros
 
 💰 **FINANCIAL DATA**:
 - **Land Value**: Raw land worth
@@ -121,6 +121,7 @@ CRITICAL EXTRACTION INSTRUCTIONS:
 - **Legal Description**: Lot, block, subdivision details
 
 🚨 **SPECIAL HANDLING**:
+- **Account Numbers**: MUST be exactly 13 digits (e.g., "0311640000001"). If you see a longer number, it's incorrect - extract only 13 digits
 - **Vacant Lots**: May only show owner, address, parcel ID, land value
 - **Multiple Buildings**: Extract primary structure info
 - **Commercial Properties**: Focus on total area, property type
