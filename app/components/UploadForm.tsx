@@ -160,7 +160,7 @@ const UploadForm = forwardRef<UploadFormRef, UploadFormProps>(({ onResult, onSta
             const err = await res.json();
             console.error('API error:', err);
             errorMessage = err.error || errorMessage;
-          } catch (jsonError) {
+          } catch {
             // If response is not JSON, use status text
             errorMessage = `Server error: ${res.statusText || res.status}`;
           }

@@ -60,15 +60,6 @@ function mergeHCADData(visionData: PropertyData, hcadData: HCADData) {
 export const runtime = 'nodejs';
 export const maxDuration = 60; // Increased timeout for AI processing
 
-// Configure body size limit for this route
-export const config = {
-  api: {
-    bodyParser: {
-      sizeLimit: '20mb',
-    },
-  },
-};
-
 export async function POST(req: NextRequest) {
   try {
     console.log('🚀 Property extraction API called');

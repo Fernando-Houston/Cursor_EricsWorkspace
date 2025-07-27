@@ -1,8 +1,9 @@
 import OpenAI from 'openai';
 
-const openai = new OpenAI({
+// Initialize OpenAI client only if API key is available
+const openai = process.env.OPENAI_API_KEY ? new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
-});
+}) : null;
 
 export interface PropertyData {
   propertyAddress: string;
@@ -63,6 +64,10 @@ export interface PropertyData {
 }
 
 export async function extractPropertyData(imageBase64: string): Promise<PropertyData> {
+  if (!openai) {
+    throw new Error('OpenAI API key is not configured');
+  }
+  
   try {
     const response = await openai.chat.completions.create({
       model: "gpt-4o-mini",
