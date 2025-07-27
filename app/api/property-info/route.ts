@@ -45,11 +45,21 @@ async function searchRailwayByAccountNumber(accountNumber: string) {
     
     if (result.rows.length > 0) {
       const row = result.rows[0];
+      
+      // Build complete mailing address with city, state, zip if available
+      let fullMailingAddress = row.mail_address || row.property_address;
+      if (row.city || row.state || row.zip) {
+        const cityStateZip = [row.city, row.state, row.zip].filter(Boolean).join(' ');
+        if (cityStateZip && !fullMailingAddress.includes(cityStateZip)) {
+          fullMailingAddress = `${fullMailingAddress}, ${cityStateZip}`;
+        }
+      }
+      
       return {
         accountNumber: row.account_number,
         owner: row.owner_name,
         propertyAddress: row.property_address,
-        mailingAddress: row.mail_address,
+        mailingAddress: fullMailingAddress,
         totalValue: row.total_value ? parseFloat(row.total_value) : null,
         landValue: row.land_value ? parseFloat(row.land_value) : null,
         improvementValue: row.building_value ? parseFloat(row.building_value) : null,
