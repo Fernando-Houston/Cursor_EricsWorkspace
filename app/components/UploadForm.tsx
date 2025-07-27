@@ -2,6 +2,7 @@ import React, { useState, forwardRef, useImperativeHandle } from 'react';
 import Image from 'next/image';
 import LoadingProgress from './LoadingProgress';
 import { useN8nWebhook } from '../hooks/useN8nWebhook';
+import imageCompression from 'browser-image-compression';
 
 interface PropertyInfo {
   propertyAddress: string;
@@ -29,6 +30,7 @@ const UploadForm = forwardRef<UploadFormRef, UploadFormProps>(({ onResult, onSta
   const [processingStage, setProcessingStage] = useState<'idle' | 'vision' | 'enhancement' | 'complete'>('idle');
   const [progress, setProgress] = useState(0);
   const [useN8n] = useState(false);
+  const [compressionInfo, setCompressionInfo] = useState<{ original: number; compressed: number } | null>(null);
   
   const { analyzeProperty } = useN8nWebhook({
     onSuccess: (data) => {
@@ -61,27 +63,73 @@ const UploadForm = forwardRef<UploadFormRef, UploadFormProps>(({ onResult, onSta
     }
   }));
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const selectedFile = e.target.files[0];
+      const originalSizeMB = (selectedFile.size / (1024 * 1024)).toFixed(2);
       
-      // Check file size before setting (20MB limit)
-      const maxSize = 20 * 1024 * 1024; // 20MB
-      if (selectedFile.size > maxSize) {
-        const fileSizeMB = (selectedFile.size / (1024 * 1024)).toFixed(2);
-        setError(`File size (${fileSizeMB}MB) exceeds 20MB limit. Please use a smaller image.`);
-        return;
+      // If file is larger than 4MB, compress it
+      const targetSizeMB = 4; // Target 4MB to stay well under Vercel's limit
+      if (selectedFile.size > targetSizeMB * 1024 * 1024) {
+        try {
+          setError(null);
+          setProcessingStage('vision'); // Show processing state
+          setProgress(10);
+          
+          console.log(`Compressing image from ${originalSizeMB}MB...`);
+          
+          const options = {
+            maxSizeMB: targetSizeMB,
+            maxWidthOrHeight: 2048, // Maintain good quality for text recognition
+            useWebWorker: true,
+            onProgress: (progress: number) => {
+              setProgress(progress * 0.5); // Show compression progress (0-50%)
+            }
+          };
+          
+          const compressedFile = await imageCompression(selectedFile, options);
+          const compressedSizeMB = (compressedFile.size / (1024 * 1024)).toFixed(2);
+          
+          console.log(`Compressed from ${originalSizeMB}MB to ${compressedSizeMB}MB`);
+          
+          // Store compression info
+          setCompressionInfo({
+            original: selectedFile.size,
+            compressed: compressedFile.size
+          });
+          
+          // Use the compressed file
+          setFile(compressedFile);
+          setProcessingStage('idle');
+          setProgress(0);
+          
+          // Create preview URL from compressed file
+          const reader = new FileReader();
+          reader.onload = (e) => {
+            setPreview(e.target?.result as string);
+          };
+          reader.readAsDataURL(compressedFile);
+          
+        } catch (error) {
+          console.error('Compression error:', error);
+          setError('Failed to compress image. Please try a different image.');
+          setProcessingStage('idle');
+          setProgress(0);
+          return;
+        }
+      } else {
+        // File is already small enough, use as is
+        setFile(selectedFile);
+        setError(null);
+        setCompressionInfo(null); // No compression needed
+        
+        // Create preview URL
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          setPreview(e.target?.result as string);
+        };
+        reader.readAsDataURL(selectedFile);
       }
-      
-      setFile(selectedFile);
-      setError(null);
-      
-      // Create preview URL
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        setPreview(e.target?.result as string);
-      };
-      reader.readAsDataURL(selectedFile);
     }
   };
 
@@ -199,6 +247,7 @@ const UploadForm = forwardRef<UploadFormRef, UploadFormProps>(({ onResult, onSta
     setFile(null);
     setPreview(null);
     setError(null);
+    setCompressionInfo(null);
   };
 
   return (
@@ -252,7 +301,7 @@ const UploadForm = forwardRef<UploadFormRef, UploadFormProps>(({ onResult, onSta
             </div>
             
             {/* File Info */}
-            <div className="bg-gray-50 rounded-lg p-3">
+            <div className="bg-gray-50 rounded-lg p-3 space-y-2">
               <div className="flex items-center justify-between">
                 <div className="flex items-center">
                   <svg className="w-4 h-4 text-gray-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -262,6 +311,19 @@ const UploadForm = forwardRef<UploadFormRef, UploadFormProps>(({ onResult, onSta
                 </div>
                 <span className="text-xs text-gray-500">{file ? (file.size / 1024 / 1024).toFixed(2) : '0'} MB</span>
               </div>
+              
+              {/* Compression Info */}
+              {compressionInfo && (
+                <div className="flex items-center text-xs text-green-600">
+                  <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  Compressed from {(compressionInfo.original / 1024 / 1024).toFixed(1)}MB to {(compressionInfo.compressed / 1024 / 1024).toFixed(1)}MB
+                  <span className="ml-1 text-green-700 font-medium">
+                    ({Math.round((1 - compressionInfo.compressed / compressionInfo.original) * 100)}% smaller)
+                  </span>
+                </div>
+              )}
             </div>
           </div>
         )}
