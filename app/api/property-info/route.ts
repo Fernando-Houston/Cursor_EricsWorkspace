@@ -1,6 +1,73 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { extractPropertyData, PropertyData } from '../../../lib/vision-service';
 import { searchByAccountNumber } from '@/lib/google-cloud-db';
+import { Pool } from 'pg';
+
+// Railway database pool
+const railwayPool = new Pool({
+  connectionString: process.env.RAILWAY_HCAD_DATABASE_URL,
+  ssl: false, // Railway uses proxy, no SSL needed
+  max: 20,
+  idleTimeoutMillis: 30000,
+  connectionTimeoutMillis: 5000,
+});
+
+// Search Railway database by account number
+async function searchRailwayByAccountNumber(accountNumber: string) {
+  const client = await railwayPool.connect();
+  try {
+    const query = `
+      SELECT 
+        account_number,
+        owner_name,
+        property_address,
+        mail_address,
+        total_value::numeric as total_value,
+        land_value::numeric as land_value,
+        building_value::numeric as building_value,
+        area_sqft::numeric as area_sqft,
+        area_acres::numeric as area_acres,
+        property_type,
+        year_built,
+        city,
+        state,
+        zip
+      FROM properties 
+      WHERE account_number = $1 OR account_number = $2
+      LIMIT 1
+    `;
+    
+    // Try both with and without formatting
+    const result = await client.query(query, [accountNumber, accountNumber.replace(/\D/g, '')]);
+    
+    if (result.rows.length > 0) {
+      const row = result.rows[0];
+      return {
+        accountNumber: row.account_number,
+        owner: row.owner_name,
+        propertyAddress: row.property_address,
+        mailingAddress: row.mail_address,
+        totalValue: row.total_value ? parseFloat(row.total_value) : null,
+        landValue: row.land_value ? parseFloat(row.land_value) : null,
+        improvementValue: row.building_value ? parseFloat(row.building_value) : null,
+        squareFootage: row.area_sqft ? parseFloat(row.area_sqft) : null,
+        lotSize: row.area_sqft ? `${row.area_sqft} sq ft` : 
+                 row.area_acres ? `${row.area_acres} acres` : null,
+        propertyType: row.property_type,
+        yearBuilt: row.year_built,
+        city: row.city,
+        state: row.state,
+        zip: row.zip
+      };
+    }
+    return null;
+  } catch (error) {
+    console.error('Error searching Railway database:', error);
+    return null;
+  } finally {
+    client.release();
+  }
+}
 
 // Types for the data structures
 interface HCADData {
@@ -110,17 +177,66 @@ export async function POST(req: NextRequest) {
     const visionData = await extractPropertyData(imageBase64);
     console.log('✅ Vision extraction completed with confidence:', visionData.confidence);
 
-    // Check Google Cloud database first if we have a parcel ID
+    // Check Railway database first if we have a parcel ID
     let finalData: EnhancedPropertyData = visionData;
-    const hasDbConfig = !!(process.env.DATABASE_URL || process.env.GOOGLE_CLOUD_DATABASE_URL || process.env.GOOGLE_CLOUD_SQL_HOST);
-    console.log('🔍 Database check - Config present:', hasDbConfig);
+    const hasRailwayDb = !!process.env.RAILWAY_HCAD_DATABASE_URL;
+    const hasGoogleDb = !!(process.env.DATABASE_URL || process.env.GOOGLE_CLOUD_DATABASE_URL || process.env.GOOGLE_CLOUD_SQL_HOST);
+    
+    console.log('🔍 Database check - Railway:', hasRailwayDb);
+    console.log('🔍 Database check - Google Cloud:', hasGoogleDb);
     console.log('🔍 Database check - Parcel ID:', visionData.parcelId);
     
-    if (visionData.parcelId && hasDbConfig) {
+    // Try Railway database first (it has better data)
+    if (visionData.parcelId && hasRailwayDb) {
+      console.log('🔍 Checking Railway HCAD database for parcel:', visionData.parcelId);
+      try {
+        const railwayResult = await searchRailwayByAccountNumber(visionData.parcelId);
+        console.log('🔍 Railway database search result:', railwayResult ? 'FOUND' : 'NOT FOUND');
+        
+        if (railwayResult) {
+          console.log('✅ Found in Railway database! Using Railway data.');
+          console.log('📊 Railway Data - Address:', railwayResult.propertyAddress);
+          console.log('📊 Railway Data - Owner:', railwayResult.owner);
+          console.log('📊 Railway Data - Size:', railwayResult.lotSize);
+          console.log('📊 Railway Data - Total Value:', railwayResult.totalValue);
+          
+          // Map Railway data to our format
+          finalData = {
+            ...visionData,
+            propertyAddress: railwayResult.propertyAddress || visionData.propertyAddress,
+            mailingAddress: railwayResult.mailingAddress || visionData.mailingAddress,
+            ownerName: railwayResult.owner || visionData.ownerName,
+            owner: railwayResult.owner || visionData.ownerName,
+            totalValue: railwayResult.totalValue || visionData.totalValue,
+            landValue: railwayResult.landValue || visionData.landValue,
+            improvementValue: railwayResult.improvementValue || visionData.improvementValue,
+            appraisal: railwayResult.totalValue ? `$${Number(railwayResult.totalValue).toLocaleString()}` : 
+                      'Not Available',
+            yearBuilt: railwayResult.yearBuilt || visionData.yearBuilt,
+            squareFootage: railwayResult.squareFootage || visionData.squareFootage,
+            size: railwayResult.lotSize || visionData.size || 'Not Available',
+            lotSize: railwayResult.lotSize || visionData.lotSize,
+            propertyType: railwayResult.propertyType || visionData.propertyType,
+            parcelId: visionData.parcelId,
+            confidence: 100, // Railway data is 100% confident
+            enhancedBy: 'railway-db',
+            source: 'railway-db'
+          };
+          
+          // Skip other database searches since we found it
+          console.log('⏭️ Skipping other database searches - using Railway data');
+        }
+      } catch (railwayError) {
+        console.error('⚠️ Railway database error:', railwayError);
+      }
+    }
+    
+    // If not found in Railway and we have Google Cloud config, try Google Cloud
+    if (visionData.parcelId && !finalData.source && hasGoogleDb) {
       console.log('🔍 Checking Google Cloud HCAD database for parcel:', visionData.parcelId);
       try {
         const dbResult = await searchByAccountNumber(visionData.parcelId);
-        console.log('🔍 Database search result:', dbResult ? 'FOUND' : 'NOT FOUND');
+        console.log('🔍 Google Cloud database search result:', dbResult ? 'FOUND' : 'NOT FOUND');
         if (dbResult) {
           console.log('✅ Found in Google Cloud database! Using database data.');
           console.log('📊 DB Data - Address:', dbResult.propertyAddress);
