@@ -60,6 +60,15 @@ function mergeHCADData(visionData: PropertyData, hcadData: HCADData) {
 export const runtime = 'nodejs';
 export const maxDuration = 60; // Increased timeout for AI processing
 
+// Configure body size limit for this route
+export const config = {
+  api: {
+    bodyParser: {
+      sizeLimit: '20mb',
+    },
+  },
+};
+
 export async function POST(req: NextRequest) {
   try {
     console.log('🚀 Property extraction API called');
@@ -81,10 +90,19 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Please upload an image file' }, { status: 400 });
     }
 
-    // Validate file size (max 10MB)
-    if (file.size > 10 * 1024 * 1024) {
+    // Validate file size (max 20MB)
+    const maxFileSize = 20 * 1024 * 1024; // 20MB
+    if (file.size > maxFileSize) {
       console.log('❌ File too large:', file.size, 'bytes');
-      return NextResponse.json({ error: 'File size must be less than 10MB' }, { status: 400 });
+      const fileSizeMB = (file.size / (1024 * 1024)).toFixed(2);
+      return NextResponse.json({ 
+        error: `File size (${fileSizeMB}MB) exceeds maximum allowed size of 20MB. Please use a smaller image or compress it before uploading.`,
+        details: {
+          fileSize: file.size,
+          maxSize: maxFileSize,
+          fileSizeMB: fileSizeMB
+        }
+      }, { status: 400 });
     }
 
     console.log('📊 File size:', file.size, 'bytes');

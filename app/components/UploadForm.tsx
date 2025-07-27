@@ -64,6 +64,15 @@ const UploadForm = forwardRef<UploadFormRef, UploadFormProps>(({ onResult, onSta
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const selectedFile = e.target.files[0];
+      
+      // Check file size before setting (20MB limit)
+      const maxSize = 20 * 1024 * 1024; // 20MB
+      if (selectedFile.size > maxSize) {
+        const fileSizeMB = (selectedFile.size / (1024 * 1024)).toFixed(2);
+        setError(`File size (${fileSizeMB}MB) exceeds 20MB limit. Please use a smaller image.`);
+        return;
+      }
+      
       setFile(selectedFile);
       setError(null);
       
@@ -141,9 +150,23 @@ const UploadForm = forwardRef<UploadFormRef, UploadFormProps>(({ onResult, onSta
       
       if (!res.ok) {
         clearInterval(progressInterval);
-        const err = await res.json();
-        console.error('API error:', err);
-        setError(err.error || 'Failed to process image.');
+        let errorMessage = 'Failed to process image.';
+        
+        // Handle specific error codes
+        if (res.status === 413) {
+          errorMessage = 'File size too large. Please use an image under 20MB.';
+        } else {
+          try {
+            const err = await res.json();
+            console.error('API error:', err);
+            errorMessage = err.error || errorMessage;
+          } catch (jsonError) {
+            // If response is not JSON, use status text
+            errorMessage = `Server error: ${res.statusText || res.status}`;
+          }
+        }
+        
+        setError(errorMessage);
         setLoading(false);
         setProcessingStage('idle');
         setProgress(0);
